@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Sparkles } from "lucide-react";
+import { X, MessageSquare } from "lucide-react";
 import { RatingStars } from "./RatingStars";
 import { StorageService } from "@/lib/storage";
 import { useAuth } from "@/context/AuthContext";
@@ -67,7 +67,7 @@ export function ReviewModal({
       <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2 text-shopee-orange font-bold text-lg">
-            <Sparkles className="w-5 h-5" />
+            <MessageSquare className="w-5 h-5" />
             <span>Đánh Giá Sản Phẩm</span>
           </div>
           <button

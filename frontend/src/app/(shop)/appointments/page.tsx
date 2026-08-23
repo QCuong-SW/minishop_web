@@ -14,7 +14,7 @@ import {
   Calendar,
   Clock,
   Users,
-  Sparkles,
+  Award,
   MapPin,
   CheckCircle2,
   ChevronRight,
@@ -102,7 +102,7 @@ export default function AppointmentsPage() {
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-6 md:p-10 shadow-xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-3">
             <span className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4" /> Trải Nghiệm Showroom 1-1 Miễn Phí
+              <Award className="w-4 h-4" /> Trải Nghiệm Showroom 1-1 Miễn Phí
             </span>
             <h1 className="text-2xl md:text-3xl font-black">
               Đặt Lịch Thử Đồ & Trải Nghiệm Công Nghệ

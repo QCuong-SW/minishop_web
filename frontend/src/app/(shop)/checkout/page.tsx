@@ -21,7 +21,6 @@ import {
   ArrowRight,
   ShieldCheck,
   ChevronRight,
-  Sparkles,
 } from "lucide-react";
 
 export default function CheckoutPage() {
