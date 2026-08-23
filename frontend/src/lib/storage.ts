@@ -113,15 +113,15 @@ export const StorageService = {
   // Categories
   getCategories(): Category[] {
     const categories = getItem<Category[]>(KEYS.CATEGORIES, INITIAL_CATEGORIES);
-    const products = this.getProducts();
+    const rawProducts = getItem<Product[]>(KEYS.PRODUCTS, INITIAL_PRODUCTS);
     return categories.map((cat) => ({
       ...cat,
-      product_count: products.filter((p) => p.category_id === cat.id && p.status === "ACTIVE").length,
+      product_count: rawProducts.filter((p) => p.category_id === cat.id && p.status === "ACTIVE").length,
     }));
   },
 
   saveCategory(catData: Partial<Category>): Category {
-    const categories = this.getCategories();
+    const categories = getItem<Category[]>(KEYS.CATEGORIES, INITIAL_CATEGORIES);
     if (catData.id) {
       const updated = categories.map((c) =>
         c.id === catData.id
@@ -150,12 +150,12 @@ export const StorageService = {
   },
 
   deleteCategory(id: number): boolean {
-    const products = this.getProducts();
-    const hasProducts = products.some((p) => p.category_id === id);
+    const rawProducts = getItem<Product[]>(KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    const hasProducts = rawProducts.some((p) => p.category_id === id);
     if (hasProducts) {
       throw new Error("Không thể xóa danh mục đang có sản phẩm!");
     }
-    const categories = this.getCategories().filter((c) => c.id !== id);
+    const categories = getItem<Category[]>(KEYS.CATEGORIES, INITIAL_CATEGORIES).filter((c) => c.id !== id);
     setItem(KEYS.CATEGORIES, categories);
     return true;
   },
@@ -163,12 +163,12 @@ export const StorageService = {
   // Products
   getProducts(params?: FilterParams): { items: Product[]; total: number } {
     let products = getItem<Product[]>(KEYS.PRODUCTS, INITIAL_PRODUCTS);
-    const categories = this.getCategories();
+    const rawCategories = getItem<Category[]>(KEYS.CATEGORIES, INITIAL_CATEGORIES);
 
     // Attach category names & reviews
     const reviews = this.getReviews();
     products = products.map((p) => {
-      const cat = categories.find((c) => c.id === p.category_id);
+      const cat = rawCategories.find((c) => c.id === p.category_id);
       const prodReviews = reviews.filter((r) => r.product_id === p.id);
       const ratingAvg = prodReviews.length
         ? Number((prodReviews.reduce((sum, r) => sum + r.rating, 0) / prodReviews.length).toFixed(1))
