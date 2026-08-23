@@ -15,7 +15,7 @@ import {
   ChevronDown,
   Menu,
   X,
-  Sparkles,
+  Flame,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -45,7 +45,7 @@ export function Navbar() {
       {/* Top micro bar for announcements */}
       <div className="bg-gradient-to-r from-orange-600 via-shopee-orange to-amber-500 text-white text-[11px] font-medium py-1 px-4 text-center hidden md:flex items-center justify-between">
         <div className="flex items-center gap-1.5 mx-auto">
-          <Sparkles className="w-3.5 h-3.5" />
+          <Flame className="w-3.5 h-3.5" />
           <span>Chào mừng bạn đến với Shopee Mini — Miễn phí vận chuyển cho đơn hàng từ 200.000 đ!</span>
         </div>
         <div className="flex items-center gap-4 text-[11px]">

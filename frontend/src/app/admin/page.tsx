@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
-  Sparkles,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {

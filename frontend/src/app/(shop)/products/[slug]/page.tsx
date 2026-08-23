@@ -23,7 +23,7 @@ import {
   ShieldCheck,
   Truck,
   RotateCcw,
-  Sparkles,
+  Calendar,
   MessageSquare,
   Package,
 } from "lucide-react";
@@ -261,7 +261,7 @@ export default function ProductDetailPage() {
                   href="/appointments"
                   className="text-xs font-bold text-shopee-orange hover:underline flex items-center gap-1"
                 >
-                  <Sparkles className="w-3.5 h-3.5" /> Hẹn thử sản phẩm tại Showroom
+                  <Calendar className="w-3.5 h-3.5" /> Hẹn thử sản phẩm tại Showroom
                 </Link>
               </div>
             </div>

@@ -12,7 +12,7 @@ import {
   EyeOff,
   ShieldCheck,
   UserCheck,
-  Sparkles,
+  Zap,
   ArrowRight,
 } from "lucide-react";
 
@@ -70,7 +70,7 @@ export default function LoginPage() {
         {/* Demo Fast Logins Section (Essential for Presentations) */}
         <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-4 rounded-2xl border border-orange-200/80 space-y-2.5">
           <div className="flex items-center gap-1.5 text-xs font-bold text-orange-800">
-            <Sparkles className="w-3.5 h-3.5 text-shopee-orange" />
+            <Zap className="w-3.5 h-3.5 text-shopee-orange" />
             <span>Chức Năng Dành Riêng Cho Demo Báo Cáo:</span>
           </div>
           <div className="grid grid-cols-2 gap-2">

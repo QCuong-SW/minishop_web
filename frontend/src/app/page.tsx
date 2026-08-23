@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Sparkles,
+  Flame,
+  Award,
   ArrowRight,
   Zap,
   TrendingUp,
@@ -89,7 +90,7 @@ export default function HomePage() {
 
           <div className="relative z-10 max-w-2xl space-y-5">
             <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase">
-              <Sparkles className="w-3.5 h-3.5" /> Siêu Khuyến Mãi 2026
+              <Flame className="w-3.5 h-3.5" /> Siêu Khuyến Mãi 2026
             </span>
 
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
@@ -288,7 +289,7 @@ export default function HomePage() {
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Mới Nhất ✨
+                Mới Nhất 🆕
               </button>
               <button
                 type="button"
@@ -324,12 +325,12 @@ export default function HomePage() {
         <section className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-8 md:p-12 shadow-xl flex flex-col md:flex-row items-center justify-between gap-8 border border-slate-800">
           <div className="space-y-4 max-w-xl">
             <span className="text-amber-400 text-xs font-bold tracking-widest uppercase flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4" /> Dịch Vụ Độc Quyền Tại Shopee Mini
+              <Award className="w-4 h-4" /> Dịch Vụ Độc Quyền Tại Shopee Mini
             </span>
             <h2 className="text-2xl md:text-4xl font-black leading-tight">
               Trải Nghiệm Trực Tiếp Tại Showroom Cửa Hàng
             </h2>
-            <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
+            <p className="text-slate-300 text-xs md:pm-sm leading-relaxed">
               Bạn phân vân về size áo, muốn nghe thử chất âm tai nghe ANC hay gõ thử các loại switch bàn phím cơ? Đặt lịch hẹn ngay để được chuyên viên tư vấn riêng 1-1 miễn phí!
             </p>
           </div>
