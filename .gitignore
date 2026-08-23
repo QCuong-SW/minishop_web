@@ -1,0 +1,65 @@
+# ==========================================
+# SHOPEE MINI — ROOT .GITIGNORE
+# ==========================================
+
+# 1. Environment & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# 2. Database & Docker data
+mysql_data/
+*.sqlite
+*.sql.gz
+
+# 3. Frontend (Node / Next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage/
+
+# 4. Backend (PHP / Composer)
+backend/vendor/
+backend/.phpunit.result.cache
+backend/storage/logs/*.log
+backend/storage/framework/
+
+# 5. Package manager logs & lockfiles local caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# 6. IDEs & Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.sublime-workspace
+*.sublime-project
+
+# 7. Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# 8. Uploads local test files (preserve .gitkeep)
+backend/public/uploads/*
+!backend/public/uploads/.gitkeep
