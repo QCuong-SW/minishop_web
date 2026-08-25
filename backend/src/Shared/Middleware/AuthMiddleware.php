@@ -26,18 +26,27 @@ class AuthMiddleware {
         $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
         if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
             $token = $matches[1];
-            // If token is mock format: mock-jwt-token-{id} or default
+
+            // Verify and decode JWT token
+            $payload = \App\Shared\Utils\JWT::decode($token);
+            if ($payload && isset($payload['sub'])) {
+                $db = Database::getConnection();
+                $stmt = $db->prepare("SELECT id, name, email, role, avatar_url, phone, address, status FROM users WHERE id = :id AND status = 'ACTIVE' LIMIT 1");
+                $stmt->execute([':id' => (int)$payload['sub']]);
+                $user = $stmt->fetch();
+                if ($user) {
+                    return $user;
+                }
+            }
+
+            // Compatibility fallback for mock-jwt-token format if any
             if (preg_match('/^mock-jwt-token-(\d+)$/', $token, $m)) {
                 $db = Database::getConnection();
-                $stmt = $db->prepare("SELECT id, name, email, role, avatar_url, phone, address, status FROM users WHERE id = :id LIMIT 1");
+                $stmt = $db->prepare("SELECT id, name, email, role, avatar_url, phone, address, status FROM users WHERE id = :id AND status = 'ACTIVE' LIMIT 1");
                 $stmt->execute([':id' => (int)$m[1]]);
                 $user = $stmt->fetch();
                 if ($user) return $user;
             }
-            // Fallback default active user
-            $db = Database::getConnection();
-            $stmt = $db->query("SELECT id, name, email, role, avatar_url, phone, address, status FROM users WHERE role = 'USER' AND status = 'ACTIVE' LIMIT 1");
-            return $stmt->fetch() ?: null;
         }
 
         return null;

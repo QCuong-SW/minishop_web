@@ -25,11 +25,18 @@ class AuthService {
         }
 
         unset($user['password']);
+        $token = \App\Shared\Utils\JWT::encode([
+            'sub' => (int)$user['id'],
+            'email' => $user['email'],
+            'role' => $user['role'],
+            'name' => $user['name']
+        ]);
+
         return [
             'success' => true,
             'message' => 'Đăng nhập thành công',
             'data' => [
-                'token' => 'mock-jwt-token-' . $user['id'],
+                'token' => $token,
                 'user' => $user
             ]
         ];
@@ -45,11 +52,18 @@ class AuthService {
         $user = $this->repo->findById($userId);
         unset($user['password']);
 
+        $token = \App\Shared\Utils\JWT::encode([
+            'sub' => (int)$user['id'],
+            'email' => $user['email'],
+            'role' => $user['role'],
+            'name' => $user['name']
+        ]);
+
         return [
             'success' => true,
             'message' => 'Đăng ký tài khoản thành công',
             'data' => [
-                'token' => 'mock-jwt-token-' . $user['id'],
+                'token' => $token,
                 'user' => $user
             ]
         ];
