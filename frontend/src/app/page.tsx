@@ -15,11 +15,13 @@ import {
   RotateCcw,
   Calendar,
   Layers,
+  Sparkles,
+  Tag,
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ProductCard } from "@/components/shared/ProductCard";
-import { StorageService } from "@/lib/storage";
+import { getCategories, getProducts } from "@/features/products/product.api";
 import { Product, Category } from "@/types";
 
 export default function HomePage() {
@@ -35,11 +37,19 @@ export default function HomePage() {
   });
 
   useEffect(() => {
-    StorageService.init();
-    const prods = StorageService.getProducts().items;
-    const cats = StorageService.getCategories();
-    setProducts(prods);
-    setCategories(cats);
+    async function loadData() {
+      try {
+        const [prodsData, catsData] = await Promise.all([
+          getProducts({ limit: 12, sort: "newest" }),
+          getCategories(),
+        ]);
+        setProducts(prodsData.items || []);
+        setCategories(catsData || []);
+      } catch (err) {
+        console.error("Error loading home data:", err);
+      }
+    }
+    loadData();
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -83,8 +93,7 @@ export default function HomePage() {
 
       <main className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full space-y-10">
         {/* Hero Banner Slider / Section */}
-        <section className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-600 via-shopee-orange to-amber-500 text-white shadow-2xl p-8 md:p-14">
-          {/* Decorative background shapes */}
+        <section className="relative hero-glow-container light-sweep rounded-3xl overflow-hidden bg-gradient-to-r from-orange-600 via-shopee-orange to-amber-500 text-white shadow-2xl p-8 md:p-14 border border-orange-300/40">
           <div className="absolute -right-12 -bottom-12 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute right-1/4 -top-12 w-64 h-64 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
 
@@ -120,46 +129,56 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Value Propositions */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-            <div className="p-3 bg-orange-50 text-shopee-orange rounded-2xl">
-              <Truck className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm">Freeship Toàn Quốc</h3>
-              <p className="text-xs text-slate-500">Đơn hàng từ 200.000 đ</p>
-            </div>
-          </div>
+        {/* Value Propositions Marquee Conveyor Belt */}
+        <section className="relative overflow-hidden py-1">
+          {/* Gradient Masks for smooth edge fading */}
+          <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-            <div className="p-3 bg-orange-50 text-shopee-orange rounded-2xl">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm">100% Chính Hãng</h3>
-              <p className="text-xs text-slate-500">Bảo hành chính hãng</p>
-            </div>
-          </div>
+          <div className="marquee-track flex gap-4">
+            {[1, 2, 3].map((setIndex) => (
+              <div key={setIndex} className="flex gap-4 flex-shrink-0">
+                <div className="w-64 sm:w-72 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4 hover:shadow-md hover:border-orange-200 transition cursor-default flex-shrink-0">
+                  <div className="p-3 bg-orange-50 text-shopee-orange rounded-2xl flex-shrink-0">
+                    <Truck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-sm">Freeship Toàn Quốc</h3>
+                    <p className="text-xs text-slate-500">Đơn hàng từ 200.000 đ</p>
+                  </div>
+                </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-            <div className="p-3 bg-orange-50 text-shopee-orange rounded-2xl">
-              <RotateCcw className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm">Đổi Trả 7 Ngày</h3>
-              <p className="text-xs text-slate-500">Nhanh chóng & dễ dàng</p>
-            </div>
-          </div>
+                <div className="w-64 sm:w-72 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4 hover:shadow-md hover:border-orange-200 transition cursor-default flex-shrink-0">
+                  <div className="p-3 bg-orange-50 text-shopee-orange rounded-2xl flex-shrink-0">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-sm">100% Chính Hãng</h3>
+                    <p className="text-xs text-slate-500">Bảo hành chính hãng</p>
+                  </div>
+                </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-            <div className="p-3 bg-orange-50 text-shopee-orange rounded-2xl">
-              <Calendar className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-800 text-sm">Hẹn Thử Showroom</h3>
-              <p className="text-xs text-slate-500">Trải nghiệm thực tế</p>
-            </div>
+                <div className="w-64 sm:w-72 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4 hover:shadow-md hover:border-orange-200 transition cursor-default flex-shrink-0">
+                  <div className="p-3 bg-orange-50 text-shopee-orange rounded-2xl flex-shrink-0">
+                    <RotateCcw className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-sm">Đổi Trả 7 Ngày</h3>
+                    <p className="text-xs text-slate-500">Nhanh chóng & dễ dàng</p>
+                  </div>
+                </div>
+
+                <div className="w-64 sm:w-72 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4 hover:shadow-md hover:border-orange-200 transition cursor-default flex-shrink-0">
+                  <div className="p-3 bg-orange-50 text-shopee-orange rounded-2xl flex-shrink-0">
+                    <Calendar className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-sm">Hẹn Thử Showroom</h3>
+                    <p className="text-xs text-slate-500">Trải nghiệm thực tế</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -205,8 +224,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Flash Deals / Chớp Nhoáng */}
-        <section className="bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-rose-500/10 rounded-3xl p-6 md:p-8 border border-orange-200/60 shadow-sm space-y-6">
+        {/* Flash Deals */}
+        <section className="light-sweep bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-rose-500/10 rounded-3xl p-6 md:p-8 border border-orange-200/80 shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-shopee-orange text-white rounded-xl shadow-md">
@@ -214,13 +233,12 @@ export default function HomePage() {
               </div>
               <div>
                 <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                  ⚡ FLASH DEALS GIỜ VÀNG
+                  <span>FLASH DEALS GIỜ VÀNG</span>
                 </h2>
                 <p className="text-xs text-slate-500">Giảm giá sốc - Số lượng có hạn</p>
               </div>
             </div>
 
-            {/* Countdown Timer */}
             <div className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-2xl shadow-md self-start sm:self-auto">
               <Clock className="w-4 h-4 text-amber-400" />
               <span className="text-xs font-medium text-slate-300">Kết thúc sau:</span>
@@ -240,7 +258,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Flash Sale Product Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {flashSaleProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
@@ -248,7 +265,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Product Feed: Gợi Ý Hôm Nay */}
+        {/* Product Feed */}
         <section className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
             <div className="flex items-center gap-2">
@@ -256,7 +273,6 @@ export default function HomePage() {
               <h2 className="text-xl font-bold text-slate-800">Gợi Ý Hôm Nay Dành Cho Bạn</h2>
             </div>
 
-            {/* Tabs */}
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start sm:self-auto text-xs font-bold">
               <button
                 type="button"
@@ -272,35 +288,38 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("hot")}
-                className={`px-3.5 py-1.5 rounded-lg transition ${
+                className={`px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
                   activeTab === "hot"
                     ? "bg-shopee-orange text-white shadow"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Bán Chạy 🔥
+                <Flame className={`w-3.5 h-3.5 ${activeTab === "hot" ? "text-white fill-white" : "text-rose-500"}`} />
+                <span>Bán Chạy</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("new")}
-                className={`px-3.5 py-1.5 rounded-lg transition ${
+                className={`px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
                   activeTab === "new"
                     ? "bg-shopee-orange text-white shadow"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Mới Nhất 🆕
+                <Sparkles className={`w-3.5 h-3.5 ${activeTab === "new" ? "text-white" : "text-blue-500"}`} />
+                <span>Mới Nhất</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("discount")}
-                className={`px-3.5 py-1.5 rounded-lg transition ${
+                className={`px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
                   activeTab === "discount"
                     ? "bg-shopee-orange text-white shadow"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Giá Tốt 🏷️
+                <Tag className={`w-3.5 h-3.5 ${activeTab === "discount" ? "text-white" : "text-amber-500"}`} />
+                <span>Giá Tốt</span>
               </button>
             </div>
           </div>
@@ -322,10 +341,10 @@ export default function HomePage() {
         </section>
 
         {/* Showroom Experience Banner */}
-        <section className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-8 md:p-12 shadow-xl flex flex-col md:flex-row items-center justify-between gap-8 border border-slate-800">
+        <section className="light-sweep bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-8 md:p-12 shadow-xl flex flex-col md:flex-row items-center justify-between gap-8 border border-indigo-500/30">
           <div className="space-y-4 max-w-xl">
             <span className="text-amber-400 text-xs font-bold tracking-widest uppercase flex items-center gap-1.5">
-              <Award className="w-4 h-4" /> Dịch Vụ Độc Quyền Tại Shopee Mini
+              <Award className="w-4 h-4" /> Dịch Vụ Độc Quyền Tại MiniShop
             </span>
             <h2 className="text-2xl md:text-4xl font-black leading-tight">
               Trải Nghiệm Trực Tiếp Tại Showroom Cửa Hàng

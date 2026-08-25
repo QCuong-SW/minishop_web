@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { X, MessageSquare } from "lucide-react";
 import { RatingStars } from "./RatingStars";
-import { StorageService } from "@/lib/storage";
+import { createReviewApi } from "@/features/reviews/review.api";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
@@ -31,7 +31,7 @@ export function ReviewModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!comment.trim()) {
       toast.error("Vui lòng nhập nội dung đánh giá cảm nhận của bạn!");
@@ -40,10 +40,7 @@ export function ReviewModal({
 
     setIsSubmitting(true);
     try {
-      StorageService.addReview({
-        user_id: user?.id || 2,
-        user_name: user?.name || "Khách Hàng",
-        user_avatar: user?.avatar_url,
+      await createReviewApi({
         product_id: productId,
         order_id: orderId,
         rating,

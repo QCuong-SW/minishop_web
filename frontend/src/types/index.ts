@@ -130,16 +130,20 @@ export interface Coupon {
 }
 
 export type AppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+export type ServiceType = "TRY_CLOTHES" | "TECH_EXPERIENCE" | "WARRANTY_CONSULT" | "OTHER" | string;
 
 export interface Appointment {
   id: number;
   user_id: number;
+  customer_name?: string;
+  customer_phone?: string;
+  customer_email?: string;
   user_name?: string;
   user_phone?: string;
   appointment_date: string;
   appointment_time: string;
-  service_type: string;
-  guest_count: number;
+  service_type: ServiceType;
+  guest_count?: number;
   note?: string;
   status: AppointmentStatus;
   created_at: string;

@@ -5,21 +5,17 @@ import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { StorageService } from "@/lib/storage";
+import { getAppointmentsApi, createAppointmentApi } from "@/features/appointments/appointment.api";
 import { useAuth } from "@/context/AuthContext";
-import { Appointment, AppointmentStatus } from "@/types";
-import { formatDateOnly, formatDate } from "@/lib/utils";
+import { Appointment, AppointmentStatus, ServiceType } from "@/types";
+import { formatDateOnly } from "@/lib/utils";
 import { toast } from "sonner";
 import {
   Calendar,
-  Clock,
-  Users,
   Award,
   MapPin,
   CheckCircle2,
   ChevronRight,
-  ShieldCheck,
-  Building,
 } from "lucide-react";
 
 export default function AppointmentsPage() {
@@ -30,22 +26,25 @@ export default function AppointmentsPage() {
   // Form State
   const [date, setDate] = useState("2026-08-28");
   const [timeSlot, setTimeSlot] = useState("14:30 - 15:30");
-  const [serviceType, setServiceType] = useState("Tư vấn & Thử đồ tại showroom");
+  const [serviceType, setServiceType] = useState<ServiceType>("TRY_CLOTHES");
   const [guestCount, setGuestCount] = useState(2);
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchAppointments = () => {
-    StorageService.init();
-    const list = StorageService.getAppointments(user?.id || 2);
-    setAppointments(list);
+  const fetchAppointments = async () => {
+    try {
+      const list = await getAppointmentsApi();
+      setAppointments(list || []);
+    } catch (err) {
+      console.error("Error fetching appointments:", err);
+    }
   };
 
   useEffect(() => {
     fetchAppointments();
   }, [user]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!date) {
       toast.error("Vui lòng chọn ngày hẹn!");
@@ -54,20 +53,19 @@ export default function AppointmentsPage() {
 
     setIsSubmitting(true);
     try {
-      StorageService.createAppointment({
-        user_id: user?.id || 2,
-        user_name: user?.name || "Nguyễn Văn Khách",
-        user_phone: user?.phone || "0987654321",
+      await createAppointmentApi({
+        customer_name: user?.name || "Nguyễn Văn Khách",
+        customer_phone: user?.phone || "0987654321",
+        customer_email: user?.email || "guest@minishop.vn",
         appointment_date: date,
         appointment_time: timeSlot,
         service_type: serviceType,
-        guest_count: guestCount,
-        note: note.trim(),
+        note: note.trim() ? `${note.trim()} (Đi cùng: ${guestCount} người)` : `Đi cùng: ${guestCount} người`,
       });
 
       toast.success("Đặt lịch hẹn showroom thành công! Chuyên viên sẽ liên hệ xác nhận sớm nhất.");
       setNote("");
-      fetchAppointments();
+      await fetchAppointments();
       setActiveTab("history");
     } catch (err: any) {
       toast.error(err.message || "Đặt lịch thất bại");
@@ -86,19 +84,24 @@ export default function AppointmentsPage() {
     CANCELLED: { label: "Đã Hủy", color: "bg-rose-50 text-rose-700 border-rose-200" },
   };
 
+  const serviceLabels: Record<ServiceType, string> = {
+    TRY_CLOTHES: "Tư vấn phối đồ & Thử trang phục thời trang",
+    TECH_EXPERIENCE: "Trải nghiệm tai nghe ANC & Switch bàn phím cơ",
+    WARRANTY_CONSULT: "Hẹn tư vấn bảo hành & Đổi mới sản phẩm",
+    OTHER: "Yêu cầu trải nghiệm đặc biệt",
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
 
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full space-y-8">
-        {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <Link href="/" className="hover:text-shopee-orange">Trang chủ</Link>
           <ChevronRight className="w-3.5 h-3.5" />
           <span className="font-semibold text-slate-800">Đặt Lịch Hẹn Showroom</span>
         </div>
 
-        {/* Header Hero Banner */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-6 md:p-10 shadow-xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-3">
             <span className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
@@ -117,12 +120,11 @@ export default function AppointmentsPage() {
               <MapPin className="w-4 h-4" />
               <span>Showroom Flagship</span>
             </div>
-            <p className="text-slate-300">Tầng 3, Trung Tâm Shopee Mini</p>
+            <p className="text-slate-300">Tầng 3, Trung Tâm MiniShop</p>
             <p className="text-slate-400">Quận 1, TP. Hồ Chí Minh</p>
           </div>
         </div>
 
-        {/* Tabs Switcher */}
         <div className="flex gap-2 border-b border-slate-200 pb-2 text-xs font-bold">
           <button
             type="button"
@@ -151,7 +153,6 @@ export default function AppointmentsPage() {
           </button>
         </div>
 
-        {/* Tab 1: Booking Form */}
         {activeTab === "book" ? (
           <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
             <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
@@ -159,29 +160,22 @@ export default function AppointmentsPage() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-              {/* Service Type */}
               <div className="space-y-1.5">
                 <label className="font-bold text-slate-700 block">
                   Dịch vụ bạn muốn trải nghiệm (*)
                 </label>
                 <select
                   value={serviceType}
-                  onChange={(e) => setServiceType(e.target.value)}
+                  onChange={(e) => setServiceType(e.target.value as ServiceType)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shopee-orange font-semibold text-slate-800"
                 >
-                  <option value="Tư vấn & Thử đồ tại showroom">
-                    👗 Tư vấn phối đồ & Thử trang phục thời trang
-                  </option>
-                  <option value="Trải nghiệm bàn phím cơ & gear công nghệ">
-                    🎧 Trải nghiệm tai nghe ANC & Switch bàn phím cơ
-                  </option>
-                  <option value="Tư vấn bảo hành & Đổi mới sản phẩm">
-                    🛡️ Hẹn tư vấn bảo hành & Đổi mới sản phẩm
-                  </option>
+                  <option value="TRY_CLOTHES">Tư vấn phối đồ & Thử trang phục thời trang</option>
+                  <option value="TECH_EXPERIENCE">Trải nghiệm tai nghe ANC & Switch bàn phím cơ</option>
+                  <option value="WARRANTY_CONSULT">Hẹn tư vấn bảo hành & Đổi mới sản phẩm</option>
+                  <option value="OTHER">Yêu cầu trải nghiệm đặc biệt</option>
                 </select>
               </div>
 
-              {/* Guest Count */}
               <div className="space-y-1.5">
                 <label className="font-bold text-slate-700 block">
                   Số lượng người đi cùng (*)
@@ -198,13 +192,12 @@ export default function AppointmentsPage() {
                           : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
                       }`}
                     >
-                      {num} {num === 1 ? "người" : "người"}
+                      {num} người
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Date Picker */}
               <div className="space-y-1.5">
                 <label className="font-bold text-slate-700 block">
                   Chọn ngày hẹn (*)
@@ -218,7 +211,6 @@ export default function AppointmentsPage() {
                 />
               </div>
 
-              {/* Time Slot Picker */}
               <div className="space-y-1.5">
                 <label className="font-bold text-slate-700 block">
                   Khung giờ đón tiếp (*)
@@ -236,7 +228,6 @@ export default function AppointmentsPage() {
                 </select>
               </div>
 
-              {/* Special Note */}
               <div className="md:col-span-2 space-y-1.5">
                 <label className="font-bold text-slate-700 block">
                   Ghi chú yêu cầu đặc biệt (Tùy chọn)
@@ -265,7 +256,6 @@ export default function AppointmentsPage() {
             </div>
           </form>
         ) : (
-          /* Tab 2: Appointment History */
           <div className="space-y-4">
             {appointments.length > 0 ? (
               appointments.map((app) => {
@@ -293,17 +283,19 @@ export default function AppointmentsPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                       <div>
                         <span className="text-slate-400 block">Dịch vụ đăng ký:</span>
-                        <span className="font-bold text-slate-800">{app.service_type}</span>
+                        <span className="font-bold text-slate-800">
+                          {serviceLabels[app.service_type] || app.service_type}
+                        </span>
                       </div>
                       <div>
                         <span className="text-slate-400 block">Khách hàng / SĐT:</span>
                         <span className="font-semibold text-slate-800">
-                          {app.user_name} ({app.user_phone})
+                          {app.customer_name} ({app.customer_phone})
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block">Số lượng đi cùng:</span>
-                        <span className="font-semibold text-slate-800">{app.guest_count} người</span>
+                        <span className="text-slate-400 block">Trạng thái:</span>
+                        <span className="font-semibold text-slate-800">{status.label}</span>
                       </div>
                     </div>
 

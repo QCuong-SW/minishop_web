@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -9,9 +9,9 @@ import { WishlistProvider } from "@/context/WishlistContext";
 const inter = Inter({ subsets: ["latin", "vietnamese"] });
 
 export const metadata: Metadata = {
-  title: "Shopee Mini — Cửa Hàng Trực Tuyến & Trải Nghiệm Showroom",
+  title: "MiniShop — Cửa Hàng Trực Tuyến & Trải Nghiệm Showroom",
   description:
-    "Hệ thống E-Commerce Shopee Mini - Mua sắm thời trang, phụ kiện và công nghệ chính hãng. Đặt lịch trải nghiệm showroom trực tiếp.",
+    "Hệ thống E-Commerce MiniShop - Mua sắm thời trang, phụ kiện và công nghệ chính hãng. Đặt lịch trải nghiệm showroom trực tiếp.",
 };
 
 export default function RootLayout({

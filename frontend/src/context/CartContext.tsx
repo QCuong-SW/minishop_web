@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { CartItem } from "@/types";
 import { StorageService } from "@/lib/storage";
+import { addToCartApi, getCartApi, removeCartItemApi, updateCartItemApi } from "@/features/cart/cart.api";
 import { toast } from "sonner";
 
 interface CartContextType {
@@ -10,13 +11,13 @@ interface CartContextType {
   itemCount: number;
   selectedCount: number;
   totalAmount: number;
-  addToCart: (productId: number, quantity?: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
-  removeFromCart: (productId: number) => void;
+  addToCart: (productId: number, quantity?: number) => Promise<void>;
+  updateQuantity: (productId: number, quantity: number) => Promise<void>;
+  removeFromCart: (productId: number) => Promise<void>;
   toggleSelection: (productId: number) => void;
   toggleSelectAll: (selected: boolean) => void;
   clearCart: () => void;
-  refreshCart: () => void;
+  refreshCart: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -25,9 +26,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
-  const refreshCart = () => {
-    const currentCart = StorageService.getCart();
-    setCart(currentCart);
+  const refreshCart = async () => {
+    try {
+      const res = await getCartApi();
+      setCart(res.items || []);
+    } catch {
+      const currentCart = StorageService.getCart();
+      setCart(currentCart);
+    }
   };
 
   useEffect(() => {
@@ -36,10 +42,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  const addToCart = (productId: number, quantity: number = 1) => {
+  const addToCart = async (productId: number, quantity: number = 1) => {
     try {
-      const updated = StorageService.addToCart(productId, quantity);
-      setCart([...updated]);
+      const res = await addToCartApi(productId, quantity);
+      setCart([...res.items]);
       const product = StorageService.getProductById(productId);
       toast.success(
         `Đã thêm ${quantity} x "${product?.name || "sản phẩm"}" vào giỏ hàng!`,
@@ -57,8 +63,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = async (productId: number, quantity: number) => {
     try {
+      await updateCartItemApi(productId, quantity);
       const updated = StorageService.updateCartItem(productId, quantity);
       setCart([...updated]);
     } catch (err: any) {
@@ -66,10 +73,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const removeFromCart = (productId: number) => {
-    const updated = StorageService.removeFromCart(productId);
-    setCart([...updated]);
-    toast.info("Đã xóa sản phẩm khỏi giỏ hàng");
+  const removeFromCart = async (productId: number) => {
+    try {
+      await removeCartItemApi(productId);
+      const updated = StorageService.removeFromCart(productId);
+      setCart([...updated]);
+      toast.info("Đã xóa sản phẩm khỏi giỏ hàng");
+    } catch (err: any) {
+      toast.error(err.message || "Lỗi khi xóa sản phẩm");
+    }
   };
 
   const toggleSelection = (productId: number) => {

@@ -53,6 +53,9 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
               <img
                 src={activeImage}
                 alt={product.name}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600";
+                }}
                 className="w-full h-full object-cover object-center"
               />
               {discount > 0 && (
@@ -116,10 +119,21 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
               {/* Stock status */}
               <div className="flex items-center gap-2 text-xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span className="font-semibold text-emerald-700">
-                  {product.stock > 0 ? `Còn hàng (${product.stock} sản phẩm)` : "Hết hàng"}
-                </span>
+                {product.stock > 0 ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span className="font-semibold text-emerald-700">
+                      Còn hàng ({product.stock} sản phẩm)
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-rose-500" />
+                    <span className="font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded">
+                      Hết hàng (Tạm thời không có sẵn)
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -128,7 +142,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
               <div className="flex items-center gap-4">
                 <span className="text-xs font-bold text-slate-700">Số lượng:</span>
                 <QuantityPicker
-                  quantity={quantity}
+                  quantity={product.stock <= 0 ? 0 : quantity}
                   maxStock={product.stock}
                   onChange={setQuantity}
                 />
@@ -139,9 +153,13 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                   type="button"
                   onClick={handleAddToCart}
                   disabled={product.stock <= 0}
-                  className="flex-1 py-3 px-4 bg-shopee-orange text-white font-bold text-sm rounded-xl shadow-md hover:bg-shopee-hover flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-50"
+                  className={`flex-1 py-3 px-4 font-bold text-sm rounded-xl shadow-md flex items-center justify-center gap-2 transition active:scale-95 ${
+                    product.stock <= 0
+                      ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                      : "bg-shopee-orange text-white hover:bg-shopee-hover"
+                  }`}
                 >
-                  <ShoppingBag className="w-4 h-4" /> Thêm Vào Giỏ
+                  <ShoppingBag className="w-4 h-4" /> {product.stock <= 0 ? "Hết Hàng" : "Thêm Vào Giỏ"}
                 </button>
 
                 <button

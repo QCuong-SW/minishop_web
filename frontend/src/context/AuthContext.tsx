@@ -1,19 +1,20 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { User } from "@/types";
+import { User, UserRole } from "@/types";
 import { StorageService } from "@/lib/storage";
-import { INITIAL_USERS } from "@/lib/mock-data";
+import { loginApi, registerApi, getMeApi } from "@/features/auth/auth.api";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: User | null;
-  isAdmin: boolean;
   isAuthenticated: boolean;
-  login: (email: string, role?: "USER" | "ADMIN") => boolean;
-  demoLogin: (role: "USER" | "ADMIN") => void;
-  register: (name: string, email: string, phone?: string, address?: string) => boolean;
+  isAdmin: boolean;
+  login: (email: string, password?: string) => Promise<boolean>;
+  demoLogin: (role?: UserRole | "user" | "admin" | "USER" | "ADMIN") => Promise<void>;
+  loginAsDemoUser: () => Promise<void>;
+  loginAsDemoAdmin: () => Promise<void>;
+  register: (name: string, email: string, password?: string, phone?: string, address?: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -22,106 +23,88 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [mounted, setMounted] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     StorageService.init();
-    const current = StorageService.getCurrentUser();
-    setUser(current);
-    setMounted(true);
+    async function loadCurrentUser() {
+      try {
+        const u = await getMeApi();
+        setUser(u);
+      } catch {
+        const u = StorageService.getCurrentUser();
+        setUser(u);
+      } finally {
+        setMounted(true);
+      }
+    }
+    loadCurrentUser();
   }, []);
 
-  const login = (email: string, role: "USER" | "ADMIN" = "USER"): boolean => {
-    const users = StorageService.getUsers();
-    let found = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-
-    if (!found) {
-      // If user not found, create a demo user session
-      found = {
-        id: users.length ? Math.max(...users.map((u) => u.id)) + 1 : 4,
-        name: email.split("@")[0] || "Khách Hàng",
-        email: email,
-        role: role,
-        avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
-        phone: "0900000000",
-        address: "TP. Hồ Chí Minh",
-        status: "ACTIVE",
-        created_at: new Date().toISOString(),
-      };
-    }
-
-    if (found.status === "BANNED") {
-      toast.error("Tài khoản của bạn đã bị khóa bởi Quản trị viên!");
+  const login = async (email: string, password?: string): Promise<boolean> => {
+    try {
+      const res = await loginApi(email, password);
+      setUser(res.user);
+      StorageService.setCurrentUser(res.user);
+      toast.success(`Đăng nhập thành công! Chào mừng ${res.user.name}`);
+      return true;
+    } catch (err: any) {
+      toast.error(err.message || "Đăng nhập thất bại");
       return false;
     }
-
-    setUser(found);
-    StorageService.setCurrentUser(found);
-    toast.success(`Chào mừng trở lại, ${found.name}!`);
-    return true;
   };
 
-  const demoLogin = (role: "USER" | "ADMIN") => {
-    if (role === "ADMIN") {
-      const adminUser = INITIAL_USERS[0];
-      setUser(adminUser);
-      StorageService.setCurrentUser(adminUser);
-      toast.success("Đã đăng nhập thành công với vai trò: Admin Quản Trị 🛡️");
-      router.push("/admin");
+  const loginAsDemoUser = async () => {
+    await login("user@minishop.vn", "123456");
+  };
+
+  const loginAsDemoAdmin = async () => {
+    await login("admin@minishop.vn", "admin123");
+  };
+
+  const demoLogin = async (role: UserRole | "user" | "admin" | "USER" | "ADMIN" = "USER") => {
+    const normalized = String(role).toUpperCase();
+    if (normalized === "ADMIN") {
+      await loginAsDemoAdmin();
     } else {
-      const regularUser = INITIAL_USERS[1];
-      setUser(regularUser);
-      StorageService.setCurrentUser(regularUser);
-      toast.success("Đã đăng nhập thành công với tài khoản: Khách hàng mẫu 🛒");
-      router.push("/");
+      await loginAsDemoUser();
     }
   };
 
-  const register = (
+  const register = async (
     name: string,
     email: string,
-    phone: string = "0987654321",
-    address: string = "TP. Hồ Chí Minh"
-  ): boolean => {
-    const users = StorageService.getUsers();
-    if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-      toast.error("Email này đã được đăng ký!");
+    password?: string,
+    phone?: string,
+    address?: string
+  ): Promise<boolean> => {
+    try {
+      const res = await registerApi({ name, email, password, phone, address });
+      setUser(res.user);
+      StorageService.setCurrentUser(res.user);
+      toast.success(`Đăng ký thành công! Chào mừng ${res.user.name}`);
+      return true;
+    } catch (err: any) {
+      toast.error(err.message || "Đăng ký thất bại");
       return false;
     }
-
-    const newUser: User = {
-      id: users.length ? Math.max(...users.map((u) => u.id)) + 1 : 1,
-      name,
-      email,
-      role: "USER",
-      avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
-      phone,
-      address,
-      status: "ACTIVE",
-      created_at: new Date().toISOString(),
-    };
-
-    setUser(newUser);
-    StorageService.setCurrentUser(newUser);
-    toast.success("Đăng ký tài khoản thành công!");
-    return true;
   };
 
   const logout = () => {
-    setUser(null);
     StorageService.setCurrentUser(null);
-    toast.info("Đã đăng xuất tài khoản!");
-    router.push("/");
+    setUser(null);
+    toast.info("Đã đăng xuất tài khoản");
   };
 
   return (
     <AuthContext.Provider
       value={{
         user: mounted ? user : null,
-        isAdmin: user?.role === "ADMIN",
         isAuthenticated: !!user,
+        isAdmin: user?.role === "ADMIN",
         login,
         demoLogin,
+        loginAsDemoUser,
+        loginAsDemoAdmin,
         register,
         logout,
       }}

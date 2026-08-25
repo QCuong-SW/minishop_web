@@ -59,7 +59,8 @@ export default function AdminOrdersPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
-          📑 Quản Lý & Duyệt Đơn Hàng
+          <ShoppingBag className="w-6 h-6 text-shopee-orange" />
+          <span>Quản Lý & Duyệt Đơn Hàng</span>
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
           Theo dõi luồng xử lý đơn hàng từ lúc đặt cho đến khi shipper giao thành công
@@ -256,6 +257,9 @@ export default function AdminOrdersPage() {
                       <img
                         src={item.product_image_snapshot}
                         alt={item.product_name_snapshot}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600";
+                        }}
                         className="w-12 h-12 rounded-xl object-cover border border-slate-200"
                       />
                       <div>

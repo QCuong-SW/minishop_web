@@ -10,6 +10,8 @@ import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { QuantityPicker } from "@/components/shared/QuantityPicker";
 import { useCart } from "@/context/CartContext";
 import { formatVND } from "@/lib/utils";
+import { StorageService } from "@/lib/storage";
+import { toast } from "sonner";
 import {
   Trash2,
   ArrowRight,
@@ -17,6 +19,7 @@ import {
   ShoppingBag,
   Ticket,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function CartPage() {
@@ -38,8 +41,19 @@ export default function CartPage() {
   const allSelected = cart.length > 0 && cart.every((item) => item.selected !== false);
   const isAnySelected = cart.some((item) => item.selected !== false);
 
+  // Check if any selected item is out of stock
+  const hasOutOfStockSelected = cart.some((item) => {
+    if (item.selected === false) return false;
+    const prod = StorageService.getProductById(item.product_id);
+    return !prod || prod.stock <= 0 || prod.status === "INACTIVE" || item.quantity > prod.stock;
+  });
+
   const handleCheckout = () => {
     if (!isAnySelected) return;
+    if (hasOutOfStockSelected) {
+      toast.error("Có sản phẩm trong giỏ hàng đã hết hàng hoặc không đủ tồn kho. Vui lòng điều chỉnh trước khi thanh toán!");
+      return;
+    }
     router.push("/checkout");
   };
 
@@ -99,77 +113,103 @@ export default function CartPage() {
 
               {/* Items List */}
               <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm divide-y divide-slate-100 overflow-hidden">
-                {cart.map((item) => (
-                  <div
-                    key={item.product_id}
-                    className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition"
-                  >
-                    <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                      <input
-                        type="checkbox"
-                        checked={item.selected !== false}
-                        onChange={() => toggleSelection(item.product_id)}
-                        className="w-4 h-4 rounded text-shopee-orange focus:ring-shopee-orange accent-shopee-orange flex-shrink-0"
-                      />
+                {cart.map((item) => {
+                  const liveProd = StorageService.getProductById(item.product_id);
+                  const isItemOutOfStock = !liveProd || liveProd.stock <= 0 || liveProd.status === "INACTIVE";
+                  const isExceedingStock = liveProd && liveProd.stock > 0 && item.quantity > liveProd.stock;
 
-                      <Link
-                        href={`/products/${item.slug}`}
-                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0"
-                      >
-                        <img
-                          src={item.image_url}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
+                  return (
+                    <div
+                      key={item.product_id}
+                      className={`p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition ${
+                        isItemOutOfStock ? "bg-rose-50/40" : "hover:bg-slate-50/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                        <input
+                          type="checkbox"
+                          checked={item.selected !== false}
+                          onChange={() => toggleSelection(item.product_id)}
+                          className="w-4 h-4 rounded text-shopee-orange focus:ring-shopee-orange accent-shopee-orange flex-shrink-0"
                         />
-                      </Link>
 
-                      <div className="space-y-1 min-w-0">
                         <Link
                           href={`/products/${item.slug}`}
-                          className="font-bold text-slate-900 text-xs sm:text-sm hover:text-shopee-orange transition line-clamp-2"
+                          className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0 ${
+                            isItemOutOfStock ? "grayscale-[40%]" : ""
+                          }`}
                         >
-                          {item.name}
+                          <img
+                            src={item.image_url}
+                            alt={item.name}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600";
+                            }}
+                            className="w-full h-full object-cover"
+                          />
                         </Link>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-xs sm:text-sm font-black text-shopee-orange">
-                            {formatVND(item.price)}
-                          </span>
-                          {item.original_price && item.original_price > item.price && (
-                            <span className="text-[10px] text-slate-400 line-through">
-                              {formatVND(item.original_price)}
+
+                        <div className="space-y-1 min-w-0">
+                          <Link
+                            href={`/products/${item.slug}`}
+                            className="font-bold text-slate-900 text-xs sm:text-sm hover:text-shopee-orange transition line-clamp-2"
+                          >
+                            {item.name}
+                          </Link>
+
+                          {isItemOutOfStock && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-md">
+                              <AlertTriangle className="w-3 h-3" /> Tạm hết hàng
                             </span>
                           )}
+
+                          {isExceedingStock && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
+                              <AlertTriangle className="w-3 h-3" /> Chỉ còn {liveProd.stock} sản phẩm trong kho
+                            </span>
+                          )}
+
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-xs sm:text-sm font-black text-shopee-orange">
+                              {formatVND(item.price)}
+                            </span>
+                            {item.original_price && item.original_price > item.price && (
+                              <span className="text-[10px] text-slate-400 line-through">
+                                {formatVND(item.original_price)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Quantity & Subtotal */}
-                    <div className="flex items-center justify-between w-full sm:w-auto gap-4 self-end sm:self-center pl-7 sm:pl-0">
-                      <QuantityPicker
-                        quantity={item.quantity}
-                        maxStock={item.stock}
-                        onChange={(qty) => updateQuantity(item.product_id, qty)}
-                        size="sm"
-                      />
+                      {/* Quantity & Subtotal */}
+                      <div className="flex items-center justify-between w-full sm:w-auto gap-4 self-end sm:self-center pl-7 sm:pl-0">
+                        <QuantityPicker
+                          quantity={item.quantity}
+                          maxStock={liveProd?.stock || 0}
+                          onChange={(qty) => updateQuantity(item.product_id, qty)}
+                          size="sm"
+                        />
 
-                      <div className="text-right min-w-[90px]">
-                        <span className="text-xs sm:text-sm font-black text-slate-900 block">
-                          {formatVND(item.subtotal)}
-                        </span>
-                        <span className="text-[10px] text-slate-400">Thành tiền</span>
+                        <div className="text-right min-w-[90px]">
+                          <span className="text-xs sm:text-sm font-black text-slate-900 block">
+                            {formatVND(item.subtotal)}
+                          </span>
+                          <span className="text-[10px] text-slate-400">Thành tiền</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setItemToDelete(item.product_id)}
+                          className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition"
+                          title="Xóa món này"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setItemToDelete(item.product_id)}
-                        className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition"
-                        title="Xóa món này"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -204,19 +244,30 @@ export default function CartPage() {
                   </span>
                 </div>
 
-                <div className="p-3 bg-orange-50/60 rounded-xl border border-orange-100 text-[11px] text-orange-800 flex items-center gap-2">
-                  <Ticket className="w-4 h-4 text-shopee-orange flex-shrink-0" />
-                  <span>Mã giảm giá (Coupon) sẽ được áp dụng tại bước Thanh toán!</span>
-                </div>
+                {hasOutOfStockSelected ? (
+                  <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 text-[11px] text-rose-800 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                    <span>Có sản phẩm đã hết hàng. Vui lòng bỏ chọn hoặc xóa món đó để tiếp tục!</span>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-orange-50/60 rounded-xl border border-orange-100 text-[11px] text-orange-800 flex items-center gap-2">
+                    <Ticket className="w-4 h-4 text-shopee-orange flex-shrink-0" />
+                    <span>Mã giảm giá (Coupon) sẽ được áp dụng tại bước Thanh toán!</span>
+                  </div>
+                )}
               </div>
 
               <button
                 type="button"
                 onClick={handleCheckout}
-                disabled={!isAnySelected}
-                className="w-full py-3.5 px-4 bg-gradient-to-r from-shopee-orange to-amber-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+                disabled={!isAnySelected || hasOutOfStockSelected}
+                className={`w-full py-3.5 px-4 font-bold text-sm rounded-2xl shadow-lg flex items-center justify-center gap-2 transition active:scale-95 ${
+                  !isAnySelected || hasOutOfStockSelected
+                    ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                    : "bg-gradient-to-r from-shopee-orange to-amber-500 text-white shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30"
+                }`}
               >
-                <span>Tiến Hành Đặt Hàng</span>
+                <span>{hasOutOfStockSelected ? "Có Sản Phẩm Hết Hàng" : "Tiến Hành Đặt Hàng"}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 

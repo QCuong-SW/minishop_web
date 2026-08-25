@@ -51,7 +51,8 @@ export default function AdminAppointmentsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
-          📅 Quản Lý Lịch Hẹn Showroom
+          <Calendar className="w-6 h-6 text-shopee-orange" />
+          <span>Quản Lý Lịch Hẹn Showroom</span>
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
           Duyệt và tiếp đón khách hàng đăng ký trải nghiệm thử đồ và thiết bị trực tiếp tại Showroom

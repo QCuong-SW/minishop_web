@@ -10,7 +10,7 @@ import { QuantityPicker } from "@/components/shared/QuantityPicker";
 import { ProductCard } from "@/components/shared/ProductCard";
 import { DetailSkeleton } from "@/components/shared/LoadingSkeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { StorageService } from "@/lib/storage";
+import { getProductBySlug, getProducts, getProductReviews } from "@/features/products/product.api";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { Product, Review } from "@/types";
@@ -25,7 +25,6 @@ import {
   RotateCcw,
   Calendar,
   MessageSquare,
-  Package,
 } from "lucide-react";
 
 export default function ProductDetailPage() {
@@ -45,18 +44,37 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState<"desc" | "specs" | "policy">("desc");
 
   useEffect(() => {
-    StorageService.init();
+    let isCancelled = false;
     setLoading(true);
-    const prod = StorageService.getProductBySlug(slug);
-    if (prod) {
-      setProduct(prod);
-      setSelectedImage(prod.image_url);
-      setReviews(StorageService.getReviews(prod.id));
 
-      const { items } = StorageService.getProducts({ category_id: prod.category_id });
-      setRelatedProducts(items.filter((p) => p.id !== prod.id).slice(0, 4));
+    async function loadProductDetail() {
+      try {
+        const prod = await getProductBySlug(slug);
+        if (!isCancelled && prod) {
+          setProduct(prod);
+          setSelectedImage(prod.image_url);
+
+          const [revs, rel] = await Promise.all([
+            getProductReviews(prod.id),
+            getProducts({ category_id: prod.category_id, limit: 5 }),
+          ]);
+
+          if (!isCancelled) {
+            setReviews(revs || prod.reviews || []);
+            setRelatedProducts((rel.items || []).filter((p) => p.id !== prod.id).slice(0, 4));
+          }
+        }
+      } catch (err) {
+        console.error("Error loading product details:", err);
+      } finally {
+        if (!isCancelled) setLoading(false);
+      }
     }
-    setLoading(false);
+
+    loadProductDetail();
+    return () => {
+      isCancelled = true;
+    };
   }, [slug]);
 
   if (loading) {
@@ -125,6 +143,9 @@ export default function ProductDetailPage() {
               <img
                 src={selectedImage || product.image_url}
                 alt={product.name}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600";
+                }}
                 className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
               />
               {discount > 0 && (
@@ -148,7 +169,14 @@ export default function ProductDetailPage() {
                         : "border-slate-200 opacity-70 hover:opacity-100"
                     }`}
                   >
-                    <img src={img} alt="thumbnail" className="w-full h-full object-cover" />
+                    <img
+                      src={img}
+                      alt="thumbnail"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600";
+                      }}
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -179,8 +207,8 @@ export default function ProductDetailPage() {
                   Đã bán <strong className="text-slate-900">{product.sold_count || 120}</strong>
                 </span>
                 <span className="text-slate-300">|</span>
-                <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">
-                  {product.stock > 0 ? `Còn ${product.stock} sản phẩm` : "Hết hàng"}
+                <span className={`font-bold px-2 py-0.5 rounded ${product.stock > 0 ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50"}`}>
+                  {product.stock > 0 ? `Còn ${product.stock} sản phẩm` : "Tạm hết hàng"}
                 </span>
               </div>
 
@@ -210,13 +238,13 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-4 pt-2">
                 <span className="text-xs font-bold text-slate-700">Số lượng:</span>
                 <QuantityPicker
-                  quantity={quantity}
+                  quantity={product.stock <= 0 ? 0 : quantity}
                   maxStock={product.stock}
                   onChange={setQuantity}
                   size="lg"
                 />
-                <span className="text-xs text-slate-400">
-                  ({product.stock} sản phẩm có sẵn)
+                <span className={`text-xs ${product.stock <= 0 ? "text-rose-500 font-bold" : "text-slate-400"}`}>
+                  ({product.stock > 0 ? `${product.stock} sản phẩm có sẵn` : "Sản phẩm hiện đang hết hàng"})
                 </span>
               </div>
             </div>
@@ -228,18 +256,26 @@ export default function ProductDetailPage() {
                   type="button"
                   onClick={handleAddToCart}
                   disabled={product.stock <= 0}
-                  className="py-3.5 px-6 rounded-2xl border-2 border-shopee-orange text-shopee-orange font-bold text-sm hover:bg-orange-50 flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-40"
+                  className={`py-3.5 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition active:scale-95 ${
+                    product.stock <= 0
+                      ? "bg-slate-100 text-slate-400 border-2 border-slate-200 cursor-not-allowed"
+                      : "border-2 border-shopee-orange text-shopee-orange hover:bg-orange-50"
+                  }`}
                 >
-                  <ShoppingCart className="w-5 h-5" /> Thêm Vào Giỏ Hàng
+                  <ShoppingCart className="w-5 h-5" /> {product.stock <= 0 ? "Tạm Hết Hàng" : "Thêm Vào Giỏ Hàng"}
                 </button>
 
                 <button
                   type="button"
                   onClick={handleBuyNow}
                   disabled={product.stock <= 0}
-                  className="py-3.5 px-6 rounded-2xl bg-gradient-to-r from-shopee-orange to-amber-500 text-white font-bold text-sm shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-40"
+                  className={`py-3.5 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition active:scale-95 ${
+                    product.stock <= 0
+                      ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-shopee-orange to-amber-500 text-white shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30"
+                  }`}
                 >
-                  <Zap className="w-5 h-5 fill-white" /> Mua Ngay
+                  <Zap className="w-5 h-5 fill-current" /> {product.stock <= 0 ? "Hết Hàng" : "Mua Ngay"}
                 </button>
               </div>
 
@@ -284,7 +320,7 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Tabbed Details & Specs */}
+        {/* Tabbed Details */}
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
           <div className="flex items-center gap-4 border-b border-slate-100 pb-3 text-sm font-bold">
             <button
@@ -342,7 +378,7 @@ export default function ProductDetailPage() {
                     </tr>
                     <tr className="border-b border-slate-100">
                       <td className="p-3 font-bold text-slate-600">Thương Hiệu</td>
-                      <td className="p-3 font-semibold text-slate-800">Shopee Mini Selection</td>
+                      <td className="p-3 font-semibold text-slate-800">MiniShop Selection</td>
                     </tr>
                     <tr className="border-b border-slate-100 bg-slate-50">
                       <td className="p-3 font-bold text-slate-600">Xuất Xứ</td>
@@ -366,7 +402,7 @@ export default function ProductDetailPage() {
                   <strong>• Bảo hành điện tử:</strong> Đổi mới 1-1 trong 30 ngày nếu phát sinh lỗi từ nhà sản xuất.
                 </p>
                 <p>
-                  <strong>• Showroom Support:</strong> Khách hàng có thể mang trực tiếp sản phẩm đến hệ thống Showroom Shopee Mini để được nhân viên hỗ trợ nhanh nhất.
+                  <strong>• Showroom Support:</strong> Khách hàng có thể mang trực tiếp sản phẩm đến hệ thống Showroom MiniShop để được nhân viên hỗ trợ nhanh nhất.
                 </p>
               </div>
             )}
@@ -380,7 +416,6 @@ export default function ProductDetailPage() {
             <h2>Đánh Giá Từ Khách Hàng Đã Mua ({reviews.length})</h2>
           </div>
 
-          {/* Rating Breakdown */}
           <div className="bg-orange-50/50 p-6 rounded-2xl border border-orange-100 flex flex-col md:flex-row items-center gap-8">
             <div className="text-center space-y-1">
               <span className="text-4xl font-black text-shopee-orange">
@@ -415,7 +450,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Review List */}
           <div className="space-y-4 pt-2">
             {reviews.length > 0 ? (
               reviews.map((rev) => (

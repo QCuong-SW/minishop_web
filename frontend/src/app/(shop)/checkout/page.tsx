@@ -7,19 +7,17 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { StorageService } from "@/lib/storage";
 import { formatVND } from "@/lib/utils";
+import { validateCouponApi, createOrderApi } from "@/features/checkout/checkout.api";
 import { Order, PaymentMethod } from "@/types";
 import { toast } from "sonner";
 import {
   CreditCard,
-  Truck,
   MapPin,
   Ticket,
   CheckCircle2,
   PackageCheck,
   ArrowRight,
-  ShieldCheck,
   ChevronRight,
 } from "lucide-react";
 
@@ -64,19 +62,24 @@ export default function CheckoutPage() {
 
   // Auto test validate default coupon on load
   useEffect(() => {
-    if (subtotal >= 300000 && !appliedCoupon) {
-      const res = StorageService.validateCoupon("WELCOME50K", subtotal);
-      if (res.success && res.coupon) {
-        setAppliedCoupon({
-          code: res.coupon.code,
-          discount: res.discount,
-          description: res.coupon.description,
-        });
+    async function autoValidate() {
+      if (subtotal >= 300000 && !appliedCoupon) {
+        try {
+          const res = await validateCouponApi("WELCOME50K", subtotal);
+          if (res.discount_amount > 0) {
+            setAppliedCoupon({
+              code: res.code || "WELCOME50K",
+              discount: res.discount_amount,
+              description: res.description || "Giảm ngay 50k",
+            });
+          }
+        } catch {}
       }
     }
+    autoValidate();
   }, [subtotal]);
 
-  const handleApplyCoupon = (e?: React.FormEvent) => {
+  const handleApplyCoupon = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!couponInput.trim()) {
       toast.error("Vui lòng nhập mã khuyến mãi!");
@@ -84,18 +87,22 @@ export default function CheckoutPage() {
     }
 
     setIsValidatingCoupon(true);
-    const result = StorageService.validateCoupon(couponInput.trim(), subtotal);
-    setIsValidatingCoupon(false);
-
-    if (result.success && result.coupon) {
-      setAppliedCoupon({
-        code: result.coupon.code,
-        discount: result.discount,
-        description: result.coupon.description,
-      });
-      toast.success(result.message);
-    } else {
-      toast.error(result.message);
+    try {
+      const result = await validateCouponApi(couponInput.trim(), subtotal);
+      if (result.discount_amount > 0) {
+        setAppliedCoupon({
+          code: result.code || couponInput.trim(),
+          discount: result.discount_amount,
+          description: result.description || "Mã giảm giá hợp lệ",
+        });
+        toast.success(result.message || `Áp dụng mã ${result.code} thành công! Giảm ${formatVND(result.discount_amount)}.`);
+      } else {
+        toast.error(result.message || "Mã giảm giá không hợp lệ");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Mã giảm giá không tồn tại hoặc đã hết hạn!");
+    } finally {
+      setIsValidatingCoupon(false);
     }
   };
 
@@ -108,12 +115,25 @@ export default function CheckoutPage() {
   const discountAmount = appliedCoupon ? appliedCoupon.discount : 0;
   const finalAmount = Math.max(0, subtotal + initialShipping - discountAmount);
 
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (selectedItems.length === 0) {
       toast.error("Không có sản phẩm nào trong đơn hàng để thanh toán!");
       return;
+    }
+
+    // Check stock before submitting
+    for (const item of selectedItems) {
+      const prod = StorageService.getProductById(item.product_id);
+      if (!prod || prod.stock <= 0 || prod.status === "INACTIVE") {
+        toast.error(`Sản phẩm "${item.name}" hiện đã hết hàng. Vui lòng quay lại giỏ hàng để điều chỉnh!`);
+        return;
+      }
+      if (item.quantity > prod.stock) {
+        toast.error(`Sản phẩm "${item.name}" chỉ còn ${prod.stock} món trong kho. Vui lòng giảm số lượng!`);
+        return;
+      }
     }
 
     if (!shippingName.trim() || !shippingPhone.trim() || !shippingAddress.trim()) {
@@ -123,9 +143,7 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
     try {
-      const order = StorageService.createOrder({
-        user_id: user?.id || 2,
-        customer_name: shippingName.trim(),
+      const order = await createOrderApi({
         shipping_name: shippingName.trim(),
         shipping_phone: shippingPhone.trim(),
         shipping_address: shippingAddress.trim(),
@@ -163,7 +181,7 @@ export default function CheckoutPage() {
                 Đặt Hàng Thành Công!
               </h1>
               <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-                Cảm ơn bạn đã tin tưởng mua sắm tại Shopee Mini. Đơn hàng của bạn đã được tiếp nhận và xử lý qua Database Transaction an toàn.
+                Cảm ơn bạn đã tin tưởng mua sắm tại MiniShop. Đơn hàng của bạn đã được tiếp nhận và xử lý qua Database Transaction an toàn.
               </p>
             </div>
 
@@ -256,9 +274,17 @@ export default function CheckoutPage() {
           <span className="font-semibold text-slate-800">Thanh Toán & Đặt Hàng</span>
         </div>
 
-        <h1 className="text-2xl md:text-3xl font-black text-slate-900">
-          💳 Xác Nhận Đơn Hàng & Thanh Toán
-        </h1>
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-orange-50 text-shopee-orange rounded-2xl">
+            <CreditCard className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900">
+              Xác Nhận Đơn Hàng & Thanh Toán
+            </h1>
+            <p className="text-xs text-slate-500">Kiểm tra thông tin giao nhận và thanh toán đơn hàng</p>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmitOrder}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -427,6 +453,9 @@ export default function CheckoutPage() {
                       <img
                         src={item.image_url}
                         alt={item.name}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600";
+                        }}
                         className="w-12 h-12 rounded-xl object-cover border border-slate-200 flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">

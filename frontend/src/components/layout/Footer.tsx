@@ -9,6 +9,10 @@ import {
   Phone,
   Mail,
   Heart,
+  ShoppingCart,
+  Banknote,
+  Building2,
+  Lock,
 } from "lucide-react";
 
 export function Footer() {
@@ -63,8 +67,9 @@ export function Footer() {
           {/* Brand Info */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
-              <span className="text-2xl font-black text-shopee-orange tracking-tight">
-                🛒 Shopee<span className="text-white">Mini</span>
+              <span className="text-2xl font-black text-shopee-orange tracking-tight flex items-center gap-2">
+                <ShoppingCart className="w-6 h-6 text-shopee-orange stroke-[2.5]" />
+                <span>Mini<span className="text-white">Shop</span></span>
               </span>
             </Link>
             <p className="text-slate-400">
@@ -73,22 +78,22 @@ export function Footer() {
             <div className="space-y-2 text-slate-400">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-shopee-orange flex-shrink-0" />
-                <span>Trụ sở chính Shopee Mini, Quận 1, TP. Hồ Chí Minh</span>
+                <span>Trụ sở chính MiniShop, Quận 1, TP. Hồ Chí Minh</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-shopee-orange flex-shrink-0" />
-                <span>Hotline: 1900 6868 (Miễn phí)</span>
+                <span>Hotline: 0123 3456 (Miễn phí)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-shopee-orange flex-shrink-0" />
-                <span>support@shopeemini.vn</span>
+                <span>support@minishop.vn</span>
               </div>
             </div>
           </div>
 
           {/* Quick Links */}
           <div className="space-y-3">
-            <h4 className="font-bold text-white uppercase tracking-wider text-xs">Về Shopee Mini</h4>
+            <h4 className="font-bold text-white uppercase tracking-wider text-xs">Về MiniShop</h4>
             <ul className="space-y-2 text-slate-400">
               <li><Link href="/products" className="hover:text-shopee-orange transition">Tất cả sản phẩm</Link></li>
               <li><Link href="/appointments" className="hover:text-shopee-orange transition">Đặt hẹn Showroom</Link></li>
@@ -113,14 +118,17 @@ export function Footer() {
             <h4 className="font-bold text-white uppercase tracking-wider text-xs">Thanh Toán & An Toàn</h4>
             <p className="text-slate-400">Hỗ trợ thanh toán khi nhận hàng (COD) và Chuyển khoản mô phỏng (Mock Banking).</p>
             <div className="flex flex-wrap gap-2 pt-2">
-              <span className="px-2.5 py-1 bg-slate-800 rounded-lg text-[10px] font-bold text-slate-300 border border-slate-700">
-                💵 COD Tiền Mặt
+              <span className="px-2.5 py-1 bg-slate-800 rounded-lg text-[10px] font-bold text-slate-300 border border-slate-700 flex items-center gap-1.5 shadow-sm">
+                <Banknote className="w-3.5 h-3.5 text-emerald-400" />
+                <span>COD Tiền Mặt</span>
               </span>
-              <span className="px-2.5 py-1 bg-slate-800 rounded-lg text-[10px] font-bold text-slate-300 border border-slate-700">
-                🏦 Mock Banking
+              <span className="px-2.5 py-1 bg-slate-800 rounded-lg text-[10px] font-bold text-slate-300 border border-slate-700 flex items-center gap-1.5 shadow-sm">
+                <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                <span>Mock Banking</span>
               </span>
-              <span className="px-2.5 py-1 bg-slate-800 rounded-lg text-[10px] font-bold text-slate-300 border border-slate-700">
-                🔒 SSL Secure
+              <span className="px-2.5 py-1 bg-slate-800 rounded-lg text-[10px] font-bold text-slate-300 border border-slate-700 flex items-center gap-1.5 shadow-sm">
+                <Lock className="w-3.5 h-3.5 text-amber-400" />
+                <span>SSL Secure</span>
               </span>
             </div>
           </div>
@@ -128,7 +136,7 @@ export function Footer() {
 
         {/* Copyright */}
         <div className="pt-8 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© 2026 Shopee Mini. Đồ án môn học Lập trình Web — Next.js & PHP OOP Architecture.</p>
+          <p>© 2026 MiniShop. Đồ án môn học Lập trình Web — Next.js & PHP OOP Architecture.</p>
           <div className="flex items-center gap-1 text-slate-400">
             <span>Thiết kế & hoàn thiện với</span>
             <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />

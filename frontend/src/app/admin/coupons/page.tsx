@@ -82,7 +82,8 @@ export default function AdminCouponsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
-            🎟️ Quản Lý Mã Giảm Giá (Coupons)
+            <Ticket className="w-6 h-6 text-shopee-orange" />
+            <span>Quản Lý Mã Giảm Giá (Coupons)</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
             Tạo các mã khuyến mãi giảm tiền cố định hoặc giảm theo % kích thích mua sắm

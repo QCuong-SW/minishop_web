@@ -6,8 +6,8 @@
 
 -- 1. USERS
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `avatar_url`, `phone`, `address`, `status`) VALUES
-(1, 'Admin Quản Trị', 'admin@shopee.com', '$2y$10$wN9F4k1aB3rA2N4/jG1l6eG9F9YF1sD9L1H6z.q6J3R3P4X9G4hTe', 'ADMIN', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200', '0901234567', 'Trụ sở chính Shopee Mini, Q.1, TP.HCM', 'ACTIVE'),
-(2, 'Nguyễn Văn Khách', 'user@shopee.com', '$2y$10$wN9F4k1aB3rA2N4/jG1l6eG9F9YF1sD9L1H6z.q6J3R3P4X9G4hTe', 'USER', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200', '0987654321', '123 Nguyễn Trãi, Phường 2, Quận 5, TP.HCM', 'ACTIVE'),
+(1, 'Quản Văn Lý', 'admin@minishop.vn', '$2y$10$wN9F4k1aB3rA2N4/jG1l6eG9F9YF1sD9L1H6z.q6J3R3P4X9G4hTe', 'ADMIN', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200', '0901234567', 'Trụ sở chính MiniShop, Q.1, TP.HCM', 'ACTIVE'),
+(2, 'Nguyễn Văn Khách', 'user@minishop.vn', '$2y$10$wN9F4k1aB3rA2N4/jG1l6eG9F9YF1sD9L1H6z.q6J3R3P4X9G4hTe', 'USER', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200', '0987654321', '123 Nguyễn Trãi, Phường 2, Quận 5, TP.HCM', 'ACTIVE'),
 (3, 'Trần Thị Thảo', 'thao.tran@example.com', '$2y$10$wN9F4k1aB3rA2N4/jG1l6eG9F9YF1sD9L1H6z.q6J3R3P4X9G4hTe', 'USER', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200', '0912345678', '456 Lê Văn Sỹ, Quận 3, TP.HCM', 'ACTIVE');
 
 -- 2. CATEGORIES
@@ -21,7 +21,7 @@ INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `image_url`, `sta
 INSERT INTO `products` (`id`, `category_id`, `name`, `slug`, `description`, `price`, `original_price`, `stock`, `image_url`, `rating_avg`, `rating_count`, `status`) VALUES
 (101, 1, 'Áo Thun Unisex Cotton Compact 100%', 'ao-thun-unisex-cotton-compact-100', 'Áo phông trơn chất liệu 100% cotton chải kỹ, thoáng khí và thấm hút mồ hôi cực tốt. Form regular fit thoải mái.', 149000.00, 199000.00, 150, 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600', 4.90, 48, 'ACTIVE'),
 (102, 1, 'Áo Sơ Mi Oxford Dài Tay Form Rộng', 'ao-so-mi-oxford-dai-tay-form-rong', 'Chất vải Oxford dày dặn đứng form, chống nhăn, phù hợp đi học lẫn đi làm công sở.', 289000.00, 350000.00, 80, 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600', 4.75, 16, 'ACTIVE'),
-(103, 1, 'Quần Jean Nam Ống Suông Vintage', 'quan-jean-nam-ong-suong-vintage', 'Quần bò denim cao cấp màu xanh retro, wash nhẹ cá tính, đường may kép chắc chắn.', 350000.00, 420000.00, 65, 'https://images.unsplash.com/photo-1542272604-780c96856592?w=600', 4.80, 20, 'ACTIVE'),
+(103, 1, 'Quần Jean Nam Ống Suông Vintage', 'quan-jean-nam-ong-suong-vintage', 'Quần bò denim cao cấp màu xanh retro, wash nhẹ cá tính, đường may kép chắc chắn.', 350000.00, 420000.00, 65, 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600', 4.80, 20, 'ACTIVE'),
 (104, 2, 'Đầm Nữ Dáng Xòe Cổ Vuông Thanh Lịch', 'dam-nu-dang-xoe-co-vuong-thanh-lich', 'Chất liệu lụa satin mềm mịn, thiết kế chiết eo tôn dáng, phù hợp dự tiệc và dạo phố.', 399000.00, 499000.00, 40, 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=600', 5.00, 12, 'ACTIVE'),
 (105, 2, 'Áo Cardigan Len Mềm Nữ Style Hàn Quốc', 'ao-cardigan-len-mem-nu-style-han-quoc', 'Áo khoác len mỏng dệt kim, cúc áo ngọc trai tinh tế, phối đồ mùa thu đông cực xinh.', 249000.00, 320000.00, 90, 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=600', 4.85, 30, 'ACTIVE'),
 (106, 3, 'Giày Sneaker Trắng Đế Cao Su Kháng Khuẩn', 'giay-sneaker-trang-de-cao-su-khang-khuan', 'Sneaker phong cách basic dễ phối đồ, lót giày memory foam êm chân, chống trơn trượt.', 480000.00, 590000.00, 45, 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600', 4.90, 62, 'ACTIVE'),
