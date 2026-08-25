@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ShoppingCart, Heart, Eye } from "lucide-react";
+import { ShoppingCart, Heart, Eye, Ban } from "lucide-react";
 import { Product } from "@/types";
 import { formatVND, calculateDiscountPercent } from "@/lib/utils";
 import { RatingStars } from "./RatingStars";
@@ -20,24 +20,45 @@ export function ProductCard({ product }: ProductCardProps) {
   const { isWishlisted, toggleWishlist } = useWishlist();
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
+  const [imgSrc, setImgSrc] = useState(
+    product.image_url || "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600"
+  );
+
+  React.useEffect(() => {
+    setImgSrc(product.image_url || "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600");
+  }, [product.image_url]);
+
   const discount = calculateDiscountPercent(product.price, product.original_price);
   const isFav = isWishlisted(product.id);
+  const isOutOfStock = product.stock <= 0 || product.status === "INACTIVE";
 
   return (
     <>
-      <div className="group relative bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-orange-200 transition-all duration-300 flex flex-col justify-between overflow-hidden">
+      <div className={`group relative bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-orange-200 transition-all duration-300 flex flex-col justify-between overflow-hidden ${isOutOfStock ? "opacity-85" : ""}`}>
         {/* Product Image Container */}
         <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
           <Link href={`/products/${product.slug}`} className="block w-full h-full">
             <img
-              src={product.image_url}
+              src={imgSrc}
               alt={product.name}
-              className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-500"
+              onError={() => {
+                setImgSrc("https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600");
+              }}
+              className={`w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-500 ${isOutOfStock ? "grayscale-[30%]" : ""}`}
             />
           </Link>
 
+          {/* Out of Stock Overlay Badge */}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center pointer-events-none">
+              <span className="bg-rose-600 text-white text-xs font-black px-3.5 py-1.5 rounded-xl shadow-lg uppercase tracking-wider flex items-center gap-1">
+                <Ban className="w-3.5 h-3.5" /> Hết Hàng
+              </span>
+            </div>
+          )}
+
           {/* Discount Badge */}
-          {discount > 0 && (
+          {!isOutOfStock && discount > 0 && (
             <div className="absolute top-2.5 left-2.5 bg-shopee-orange text-white text-[11px] font-black px-2 py-0.5 rounded-md shadow-sm">
               -{discount}%
             </div>
@@ -71,9 +92,16 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Content Details */}
         <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
           <div className="space-y-1.5">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              {product.category_name || "Sản phẩm"}
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+                {product.category_name || "Sản phẩm"}
+              </span>
+              {isOutOfStock && (
+                <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded">
+                  Hết hàng
+                </span>
+              )}
+            </div>
             <Link
               href={`/products/${product.slug}`}
               className="font-bold text-slate-800 text-sm hover:text-shopee-orange transition line-clamp-2 leading-snug"
@@ -108,9 +136,13 @@ export function ProductCard({ product }: ProductCardProps) {
               <button
                 type="button"
                 onClick={() => addToCart(product.id, 1)}
-                disabled={product.stock <= 0}
-                className="p-2.5 rounded-xl bg-orange-50 text-shopee-orange hover:bg-shopee-orange hover:text-white transition-all shadow-sm active:scale-90 disabled:opacity-40"
-                title="Thêm vào giỏ hàng"
+                disabled={isOutOfStock}
+                className={`p-2.5 rounded-xl transition-all shadow-sm ${
+                  isOutOfStock
+                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                    : "bg-orange-50 text-shopee-orange hover:bg-shopee-orange hover:text-white active:scale-90"
+                }`}
+                title={isOutOfStock ? "Sản phẩm đã hết hàng" : "Thêm vào giỏ hàng"}
               >
                 <ShoppingCart className="w-4 h-4" />
               </button>

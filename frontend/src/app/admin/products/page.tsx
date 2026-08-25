@@ -141,7 +141,8 @@ export default function AdminProductsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
-            📦 Quản Lý Sản Phẩm
+            <Package className="w-6 h-6 text-shopee-orange" />
+            <span>Quản Lý Sản Phẩm</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
             Danh sách tất cả sản phẩm đang kinh doanh trên hệ thống

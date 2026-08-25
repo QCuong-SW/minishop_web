@@ -11,17 +11,11 @@ import {
   Ticket,
   Calendar,
   Users,
-  Store,
-  LogOut,
-  RotateCcw,
+  ShieldCheck,
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { StorageService } from "@/lib/storage";
-import { toast } from "sonner";
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const { logout } = useAuth();
 
   const menuItems = [
     { href: "/admin", label: "Tổng Quan (Dashboard)", icon: LayoutDashboard },
@@ -44,12 +38,12 @@ export function AdminSidebar() {
       <div className="space-y-6">
         {/* Brand Header */}
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-shopee-orange to-amber-500 flex items-center justify-center text-white font-bold shadow-md">
-            🛡️
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-shopee-orange to-amber-500 flex items-center justify-center text-white shadow-md">
+            <ShieldCheck className="w-5 h-5 text-white stroke-[2.5]" />
           </div>
           <div>
             <h2 className="font-black text-white text-base leading-tight tracking-tight">
-              Shopee<span className="text-shopee-orange">Admin</span>
+              MiniShop<span className="text-shopee-orange"> Admin</span>
             </h2>
             <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
               Control Panel
@@ -82,36 +76,6 @@ export function AdminSidebar() {
             );
           })}
         </nav>
-      </div>
-
-      {/* Bottom Actions */}
-      <div className="space-y-2 pt-4 border-t border-slate-800 text-xs">
-        <button
-          type="button"
-          onClick={handleResetData}
-          className="w-full flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-amber-400 hover:bg-amber-950/40 hover:text-amber-300 font-semibold transition"
-          title="Khôi phục dữ liệu mẫu ban đầu"
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>Khôi Phục Seed Data</span>
-        </button>
-
-        <Link
-          href="/"
-          className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition font-semibold"
-        >
-          <Store className="w-4 h-4" />
-          <span>Về Cửa Hàng (Store)</span>
-        </Link>
-
-        <button
-          type="button"
-          onClick={logout}
-          className="w-full flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 font-semibold transition"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Đăng Xuất</span>
-        </button>
       </div>
     </aside>
   );

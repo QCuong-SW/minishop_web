@@ -40,27 +40,31 @@ export function Navbar() {
     }
   };
 
+  const isCustomerUser = isAuthenticated && user && user.role === "USER";
+
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all">
-      {/* Top micro bar for announcements */}
-      <div className="bg-gradient-to-r from-orange-600 via-shopee-orange to-amber-500 text-white text-[11px] font-medium py-1 px-4 text-center hidden md:flex items-center justify-between">
-        <div className="flex items-center gap-1.5 mx-auto">
-          <Flame className="w-3.5 h-3.5" />
-          <span>Chào mừng bạn đến với Shopee Mini — Miễn phí vận chuyển cho đơn hàng từ 200.000 đ!</span>
+      {/* Top Admin Preview Strip (Only visible when logged in as Admin checking the Store UI) */}
+      {isAdmin && (
+        <div className="bg-slate-950 text-white text-xs px-4 py-2 border-b border-purple-500/30">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-slate-300 text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+              <ShieldAlert className="w-4 h-4 text-purple-400" />
+              <span>
+                Bạn đang đăng nhập Quản Trị Viên <strong>(Quản Văn Lý)</strong> — Giao diện cửa hàng hiển thị ở chế độ <strong>Khách vãng lai</strong>.
+              </span>
+            </div>
+            <Link
+              href="/admin"
+              className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-purple-600 hover:bg-purple-500 px-3 py-1 rounded-xl shadow transition active:scale-95 flex-shrink-0"
+            >
+              <span>Vào Admin Portal</span>
+              <span>→</span>
+            </Link>
+          </div>
         </div>
-        <div className="flex items-center gap-4 text-[11px]">
-          <Link href="/appointments" className="hover:underline">
-            Đặt hẹn Showroom
-          </Link>
-          <span>|</span>
-          <button
-            onClick={() => demoLogin(isAdmin ? "USER" : "ADMIN")}
-            className="hover:underline font-bold bg-white/20 px-2 py-0.5 rounded"
-          >
-            Chuyển quyền {isAdmin ? "Khách Hàng" : "Admin"} (Demo)
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
@@ -76,11 +80,11 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-shopee-orange to-amber-500 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-            🛒
+            <ShoppingCart className="w-5 h-5 text-white stroke-[2.5]" />
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-black text-shopee-orange tracking-tight leading-tight">
-              Shopee<span className="text-slate-800">Mini</span>
+              Mini<span className="text-slate-800">Shop</span>
             </span>
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest -mt-0.5">
               E-Commerce 2026
@@ -155,8 +159,8 @@ export function Navbar() {
             )}
           </Link>
 
-          {/* User Profile / Auth */}
-          {isAuthenticated && user ? (
+          {/* User Profile (Only for Customer USER) */}
+          {isCustomerUser ? (
             <div className="relative">
               <button
                 type="button"
@@ -183,25 +187,12 @@ export function Navbar() {
                   <div className="px-3 py-2 border-b border-slate-100">
                     <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
                     <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
-                    <span
-                      className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        isAdmin ? "bg-purple-100 text-purple-700" : "bg-emerald-100 text-emerald-700"
-                      }`}
-                    >
-                      {isAdmin ? "Quản Trị Viên (ADMIN)" : "Khách Hàng (USER)"}
+                    <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                      Khách Hàng (USER)
                     </span>
                   </div>
 
                   <div className="py-1 text-xs font-medium space-y-0.5">
-                    {isAdmin && (
-                      <Link
-                        href="/admin"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 text-purple-700 hover:bg-purple-50 rounded-xl transition font-bold"
-                      >
-                        <ShieldAlert className="w-4 h-4" /> Trang Quản Trị (Admin)
-                      </Link>
-                    )}
                     <Link
                       href="/orders"
                       onClick={() => setIsUserMenuOpen(false)}

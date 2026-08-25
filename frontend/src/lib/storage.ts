@@ -59,11 +59,88 @@ function setItem<T>(key: string, value: T): void {
 export const StorageService = {
   init() {
     if (typeof window === "undefined") return;
-    if (!localStorage.getItem(KEYS.USERS)) setItem(KEYS.USERS, INITIAL_USERS);
+    if (!localStorage.getItem(KEYS.USERS)) {
+      setItem(KEYS.USERS, INITIAL_USERS);
+    } else {
+      // Auto-update admin name to Quản Văn Lý
+      const cachedUsers = getItem<User[]>(KEYS.USERS, []);
+      let userUpdated = false;
+      const updatedUsers = cachedUsers.map((u) => {
+        if (u.id === 1 || u.role === "ADMIN" || u.email === "admin@minishop.vn") {
+          if (u.name !== "Quản Văn Lý") {
+            userUpdated = true;
+            return { ...u, name: "Quản Văn Lý", email: "admin@minishop.vn" };
+          }
+        }
+        return u;
+      });
+      if (userUpdated) {
+        setItem(KEYS.USERS, updatedUsers);
+      }
+    }
+    // Also update active session if logged in as admin
+    const currentAuth = getItem<User | null>(KEYS.AUTH, null);
+    if (currentAuth && (currentAuth.id === 1 || currentAuth.role === "ADMIN")) {
+      if (currentAuth.name !== "Quản Văn Lý") {
+        setItem(KEYS.AUTH, { ...currentAuth, name: "Quản Văn Lý", email: "admin@minishop.vn" });
+      }
+    }
     if (!localStorage.getItem(KEYS.CATEGORIES)) setItem(KEYS.CATEGORIES, INITIAL_CATEGORIES);
-    if (!localStorage.getItem(KEYS.PRODUCTS)) setItem(KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    if (!localStorage.getItem(KEYS.PRODUCTS)) {
+      setItem(KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    } else {
+      // Auto-heal broken product images in cached products
+      const cached = getItem<Product[]>(KEYS.PRODUCTS, []);
+      let hasUpdate = false;
+      const updated = cached.map((p) => {
+        if (p.id === 103 && (!p.image_url || p.image_url.includes("1542272604"))) {
+          hasUpdate = true;
+          return {
+            ...p,
+            image_url: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600",
+            images: [
+              "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600",
+              "https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=600",
+            ],
+          };
+        }
+        return p;
+      });
+      if (hasUpdate) {
+        setItem(KEYS.PRODUCTS, updated);
+      }
+    }
     if (!localStorage.getItem(KEYS.COUPONS)) setItem(KEYS.COUPONS, INITIAL_COUPONS);
-    if (!localStorage.getItem(KEYS.ORDERS)) setItem(KEYS.ORDERS, INITIAL_ORDERS);
+    if (!localStorage.getItem(KEYS.ORDERS)) {
+      setItem(KEYS.ORDERS, INITIAL_ORDERS);
+    } else {
+      // Auto-heal broken product image snapshots in existing orders
+      const cachedOrders = getItem<Order[]>(KEYS.ORDERS, []);
+      let ordersUpdated = false;
+      const healedOrders = cachedOrders.map((o) => {
+        if (o.items && o.items.length) {
+          const newItems = o.items.map((item) => {
+            if (
+              item.product_id === 103 ||
+              !item.product_image_snapshot ||
+              item.product_image_snapshot.includes("1542272604")
+            ) {
+              ordersUpdated = true;
+              return {
+                ...item,
+                product_image_snapshot: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600",
+              };
+            }
+            return item;
+          });
+          return { ...o, items: newItems };
+        }
+        return o;
+      });
+      if (ordersUpdated) {
+        setItem(KEYS.ORDERS, healedOrders);
+      }
+    }
     if (!localStorage.getItem(KEYS.APPOINTMENTS)) setItem(KEYS.APPOINTMENTS, INITIAL_APPOINTMENTS);
     if (!localStorage.getItem(KEYS.REVIEWS)) setItem(KEYS.REVIEWS, INITIAL_REVIEWS);
     if (!localStorage.getItem(KEYS.WISHLIST)) setItem(KEYS.WISHLIST, [108, 109]);
@@ -319,6 +396,9 @@ export const StorageService = {
     const cart = this.getCart();
     const product = this.getProductById(productId);
     if (!product) throw new Error("Sản phẩm không tồn tại");
+    if (product.stock <= 0 || product.status === "INACTIVE") {
+      throw new Error(`Sản phẩm "${product.name}" hiện đã hết hàng!`);
+    }
 
     const existingIndex = cart.findIndex((item) => item.product_id === productId);
     if (existingIndex > -1) {

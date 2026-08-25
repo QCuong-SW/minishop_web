@@ -15,14 +15,28 @@ class Request {
     public static function getBody(): array {
         $input = file_get_contents('php://input');
         $data = json_decode($input, true);
-        return is_array($data) ? $data : $_POST;
+        if (is_array($data)) {
+            return $data;
+        }
+        return $_POST ?? [];
     }
 
     public static function getQueryParams(): array {
-        return $_GET;
+        return $_GET ?? [];
     }
 
     public static function getHeaders(): array {
-        return getallheaders() ?: [];
+        $headers = [];
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders() ?: [];
+        } else {
+            foreach ($_SERVER as $name => $value) {
+                if (substr($name, 0, 5) === 'HTTP_') {
+                    $key = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))));
+                    $headers[$key] = $value;
+                }
+            }
+        }
+        return $headers;
     }
 }

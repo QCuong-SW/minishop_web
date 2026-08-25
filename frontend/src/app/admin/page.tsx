@@ -16,11 +16,17 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
+  LayoutDashboard,
+  BarChart3,
+  Activity,
+  Sparkles,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
+  const [chartMode, setChartMode] = useState<"SPLINE" | "BAR">("SPLINE");
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   const fetchStats = () => {
     StorageService.init();
@@ -38,7 +44,7 @@ export default function AdminDashboardPage() {
   const handleQuickApprove = (orderId: number) => {
     try {
       StorageService.updateOrderStatus(orderId, "CONFIRMED");
-      toast.success(`Đã duyệt nhanh đơn hàng #${orderId} sang trạng thái ĐÃ XÁC NHẬN! 🚀`);
+      toast.success(`Đã duyệt nhanh đơn hàng #${orderId} sang trạng thái ĐÃ XÁC NHẬN!`);
       fetchStats();
     } catch (err: any) {
       toast.error(err.message || "Lỗi duyệt đơn");
@@ -50,6 +56,48 @@ export default function AdminDashboardPage() {
   }
 
   const maxRevenue = Math.max(...stats.sales_chart.map((c) => c.revenue));
+  const total7DayRevenue = stats.sales_chart.reduce((acc, curr) => acc + curr.revenue, 0);
+  const total7DayOrders = stats.sales_chart.reduce((acc, curr) => acc + curr.orders, 0);
+  const peakDay = stats.sales_chart.reduce(
+    (prev, curr) => (curr.revenue > prev.revenue ? curr : prev),
+    stats.sales_chart[0] || { date: "", revenue: 0, orders: 0 }
+  );
+
+  // SVG Geometry Calculation (viewBox 0 0 700 220)
+  const svgWidth = 700;
+  const svgHeight = 220;
+  const paddingX = 40;
+  const paddingYTop = 30;
+  const paddingYBottom = 30;
+  const chartPlotHeight = svgHeight - paddingYTop - paddingYBottom;
+  const chartPlotWidth = svgWidth - paddingX * 2;
+
+  const points = stats.sales_chart.map((d, i) => {
+    const x = paddingX + (i / Math.max(1, stats.sales_chart.length - 1)) * chartPlotWidth;
+    const ratio = maxRevenue > 0 ? d.revenue / maxRevenue : 0.5;
+    const y = paddingYTop + (1 - ratio) * chartPlotHeight;
+    return { x, y, data: d, index: i };
+  });
+
+  let linePath = "";
+  if (points.length > 0) {
+    linePath = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i];
+      const p1 = points[i + 1];
+      const cpX = (p0.x + p1.x) / 2;
+      linePath += ` C ${cpX} ${p0.y}, ${cpX} ${p1.y}, ${p1.x} ${p1.y}`;
+    }
+  }
+
+  const areaPath =
+    points.length > 0
+      ? `${linePath} L ${points[points.length - 1].x} ${svgHeight - paddingYBottom} L ${points[0].x} ${
+          svgHeight - paddingYBottom
+        } Z`
+      : "";
+
+  const activePoint = hoveredIdx !== null ? points[hoveredIdx] : points[points.length - 1];
 
   return (
     <div className="space-y-8">
@@ -57,7 +105,8 @@ export default function AdminDashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
-            📊 Tổng Quan Kinh Doanh (Dashboard)
+            <LayoutDashboard className="w-6 h-6 text-shopee-orange" />
+            <span>Tổng Quan Kinh Doanh (Dashboard)</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Theo dõi doanh thu, hiệu suất đơn hàng và các chỉ số kinh doanh cốt lõi
@@ -108,8 +157,8 @@ export default function AdminDashboardPage() {
             <p className="text-2xl font-black text-slate-900">
               {stats.overview.total_orders} <span className="text-sm font-normal text-slate-500">đơn</span>
             </p>
-            <p className="text-[11px] text-blue-600 font-semibold mt-1 flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" /> +12 đơn mới trong ngày
+            <p className="text-[11px] text-blue-600 font-semibold mt-1">
+              +12 đơn mới trong ngày
             </p>
           </div>
         </div>
@@ -127,8 +176,8 @@ export default function AdminDashboardPage() {
             <p className="text-2xl font-black text-slate-900">
               {stats.overview.total_products} <span className="text-sm font-normal text-slate-500">mặt hàng</span>
             </p>
-            <p className="text-[11px] text-slate-500 font-semibold mt-1">
-              4 danh mục chính
+            <p className="text-[11px] text-slate-500 mt-1">
+              {stats.overview.total_categories} danh mục chính
             </p>
           </div>
         </div>
@@ -153,46 +202,292 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Revenue Chart Section */}
+      {/* Modern High-End Interactive Chart Section */}
       <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-shopee-orange" />
-              Biểu Đồ Doanh Thu 7 Ngày Gần Nhất
-            </h2>
-            <p className="text-xs text-slate-400">Thống kê doanh số bán hàng thực tế theo từng ngày</p>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="p-2 bg-orange-50 text-shopee-orange rounded-xl">
+                <Activity className="w-5 h-5" />
+              </span>
+              <h2 className="text-lg font-black text-slate-900 tracking-tight">
+                Phân Tích Tăng Trưởng Doanh Thu & Đơn Hàng
+              </h2>
+            </div>
+            <p className="text-xs text-slate-400">
+              Biểu đồ trực quan hóa dữ liệu bán hàng thực tế 7 ngày gần nhất
+            </p>
           </div>
-          <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl self-start sm:self-auto">
-            Đơn vị: VNĐ
-          </span>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Quick Metrics Badges */}
+            <div className="hidden sm:flex items-center gap-2 text-xs bg-slate-50 px-3 py-1.5 rounded-2xl border border-slate-200">
+              <span className="text-slate-500">Đỉnh điểm:</span>
+              <strong className="text-shopee-orange">
+                {peakDay?.date} ({formatVND(peakDay?.revenue || 0)})
+              </strong>
+            </div>
+
+            {/* Chart Mode Switcher */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+              <button
+                type="button"
+                onClick={() => setChartMode("SPLINE")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  chartMode === "SPLINE"
+                    ? "bg-white text-shopee-orange shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Sóng Doanh Thu (Spline)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartMode("BAR")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  chartMode === "BAR"
+                    ? "bg-white text-shopee-orange shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>Cột Đơn Hàng (Bars)</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* CSS Visual Bar Chart */}
-        <div className="pt-6 pb-2">
-          <div className="grid grid-cols-7 gap-3 sm:gap-6 items-end h-52 border-b border-slate-200 pb-3">
-            {stats.sales_chart.map((chartItem, idx) => {
-              const heightPercent = maxRevenue > 0 ? (chartItem.revenue / maxRevenue) * 100 : 20;
-
-              return (
-                <div key={idx} className="flex flex-col items-center gap-2 h-full justify-end group">
-                  {/* Tooltip on hover */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold bg-slate-900 text-white px-2 py-1 rounded-md text-center whitespace-nowrap shadow-md pointer-events-none -mb-1">
-                    {formatVND(chartItem.revenue)} ({chartItem.orders} đơn)
-                  </div>
-
-                  {/* Visual Bar */}
-                  <div
-                    className="w-full max-w-[48px] bg-gradient-to-t from-shopee-orange to-amber-400 rounded-t-xl group-hover:from-orange-600 group-hover:to-amber-500 transition-all shadow-sm"
-                    style={{ height: `${Math.max(15, heightPercent)}%` }}
-                  />
-
-                  {/* Day Label */}
-                  <span className="text-[11px] font-bold text-slate-600">{chartItem.date}</span>
-                </div>
-              );
-            })}
+        {/* Live Hover Info Banner */}
+        <div className="bg-gradient-to-r from-orange-50/80 via-amber-50/50 to-slate-50 p-4 rounded-2xl border border-orange-100 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded-full bg-shopee-orange animate-ping" />
+            <div>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Điểm Đang Chọn ({activePoint?.data.date}):
+              </p>
+              <div className="flex items-baseline gap-3">
+                <span className="text-xl font-black text-slate-900">
+                  {formatVND(activePoint?.data.revenue || 0)}
+                </span>
+                <span className="text-xs font-bold text-shopee-orange bg-white px-2 py-0.5 rounded-full border border-orange-200 shadow-sm">
+                  {activePoint?.data.orders} đơn hàng
+                </span>
+              </div>
+            </div>
           </div>
+
+          <div className="flex items-center gap-6 text-xs">
+            <div>
+              <p className="text-slate-400 text-[10px] font-bold uppercase">Tổng tuần</p>
+              <p className="font-black text-slate-800">{formatVND(total7DayRevenue)}</p>
+            </div>
+            <div className="h-6 w-px bg-slate-200" />
+            <div>
+              <p className="text-slate-400 text-[10px] font-bold uppercase">Tổng đơn</p>
+              <p className="font-black text-slate-800">{total7DayOrders} đơn</p>
+            </div>
+            <div className="h-6 w-px bg-slate-200" />
+            <div>
+              <p className="text-slate-400 text-[10px] font-bold uppercase">AOV (TB/Đơn)</p>
+              <p className="font-black text-emerald-600">
+                {total7DayOrders > 0 ? formatVND(Math.round(total7DayRevenue / total7DayOrders)) : "0 đ"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Visual Chart View Area */}
+        <div className="relative w-full pt-4">
+          {chartMode === "SPLINE" ? (
+            <div className="relative w-full overflow-hidden">
+              <svg
+                viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+                className="w-full h-56 sm:h-64 overflow-visible"
+              >
+                <defs>
+                  {/* Glowing Area Fill Gradient */}
+                  <linearGradient id="areaGradientGlow" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#ee4d2d" stopOpacity="0.45" />
+                    <stop offset="50%" stopColor="#f59e0b" stopOpacity="0.15" />
+                    <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.0" />
+                  </linearGradient>
+
+                  {/* Line Gradient */}
+                  <linearGradient id="lineStrokeGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#ee4d2d" />
+                    <stop offset="50%" stopColor="#f59e0b" />
+                    <stop offset="100%" stopColor="#fbbf24" />
+                  </linearGradient>
+
+                  {/* Soft Shadow Filter */}
+                  <filter id="splineShadow" x="-10%" y="-10%" width="120%" height="130%">
+                    <feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#ee4d2d" floodOpacity="0.3" />
+                  </filter>
+                </defs>
+
+                {/* Horizontal Reference Gridlines */}
+                {[0.25, 0.5, 0.75, 1].map((val, gIdx) => {
+                  const yLine = paddingYTop + (1 - val) * chartPlotHeight;
+                  return (
+                    <g key={gIdx}>
+                      <line
+                        x1={paddingX}
+                        y1={yLine}
+                        x2={svgWidth - paddingX}
+                        y2={yLine}
+                        stroke="#f1f5f9"
+                        strokeDasharray="4 4"
+                        strokeWidth="1.5"
+                      />
+                      <text
+                        x={paddingX - 10}
+                        y={yLine + 4}
+                        textAnchor="end"
+                        fontSize="10"
+                        fontWeight="600"
+                        fill="#94a3b8"
+                      >
+                        {formatVND(Math.round(maxRevenue * val))}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Baseline */}
+                <line
+                  x1={paddingX}
+                  y1={svgHeight - paddingYBottom}
+                  x2={svgWidth - paddingX}
+                  y2={svgHeight - paddingYBottom}
+                  stroke="#e2e8f0"
+                  strokeWidth="1.5"
+                />
+
+                {/* Shaded Area Under Curve */}
+                <path d={areaPath} fill="url(#areaGradientGlow)" />
+
+                {/* Glowing Smooth Spline Curve Line */}
+                <path
+                  d={linePath}
+                  fill="none"
+                  stroke="url(#lineStrokeGradient)"
+                  strokeWidth="4.5"
+                  strokeLinecap="round"
+                  filter="url(#splineShadow)"
+                />
+
+                {/* Interactive Points & Tooltips */}
+                {points.map((pt, i) => {
+                  const isHovered = hoveredIdx === i || (hoveredIdx === null && i === points.length - 1);
+                  return (
+                    <g
+                      key={i}
+                      onMouseEnter={() => setHoveredIdx(i)}
+                      className="cursor-pointer transition-all"
+                    >
+                      {/* Vertical Indicator Guide when Active */}
+                      {isHovered && (
+                        <line
+                          x1={pt.x}
+                          y1={paddingYTop}
+                          x2={pt.x}
+                          y2={svgHeight - paddingYBottom}
+                          stroke="#ee4d2d"
+                          strokeDasharray="3 3"
+                          strokeWidth="1.5"
+                          opacity="0.6"
+                        />
+                      )}
+
+                      {/* Outer Ring on Active */}
+                      {isHovered && (
+                        <circle
+                          cx={pt.x}
+                          cy={pt.y}
+                          r="12"
+                          fill="#ee4d2d"
+                          fillOpacity="0.2"
+                          className="animate-ping"
+                        />
+                      )}
+
+                      {/* White Core Circle */}
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r={isHovered ? "7" : "5"}
+                        fill="#ffffff"
+                        stroke="#ee4d2d"
+                        strokeWidth="3.5"
+                        className="transition-all"
+                      />
+
+                      {/* X-Axis Date Label */}
+                      <text
+                        x={pt.x}
+                        y={svgHeight - 10}
+                        textAnchor="middle"
+                        fontSize="11"
+                        fontWeight={isHovered ? "bold" : "600"}
+                        fill={isHovered ? "#ee4d2d" : "#64748b"}
+                      >
+                        {pt.data.date}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+          ) : (
+            /* Modern Rounded Floating Bars View */
+            <div className="grid grid-cols-7 gap-3 sm:gap-6 items-end h-56 border-b border-slate-200 pb-3 pt-4">
+              {stats.sales_chart.map((chartItem, idx) => {
+                const heightPercent = maxRevenue > 0 ? (chartItem.revenue / maxRevenue) * 100 : 20;
+                const isHovered = hoveredIdx === idx;
+
+                return (
+                  <div
+                    key={idx}
+                    onMouseEnter={() => setHoveredIdx(idx)}
+                    className="flex flex-col items-center gap-2 h-full justify-end group cursor-pointer"
+                  >
+                    {/* Tooltip on top */}
+                    <div
+                      className={`text-[10px] font-bold px-2 py-1 rounded-lg text-center whitespace-nowrap shadow-md transition-all ${
+                        isHovered
+                          ? "bg-shopee-orange text-white scale-105"
+                          : "bg-slate-900 text-white opacity-0 group-hover:opacity-100"
+                      }`}
+                    >
+                      {formatVND(chartItem.revenue)}
+                    </div>
+
+                    {/* Bar Container with Background Track */}
+                    <div className="w-full max-w-[48px] h-full flex items-end bg-slate-100 rounded-2xl p-1 overflow-hidden">
+                      <div
+                        className={`w-full rounded-xl transition-all duration-500 shadow-sm ${
+                          isHovered
+                            ? "bg-gradient-to-t from-orange-600 to-amber-400 shadow-orange-500/30"
+                            : "bg-gradient-to-t from-shopee-orange to-amber-300"
+                        }`}
+                        style={{ height: `${Math.max(18, heightPercent)}%` }}
+                      />
+                    </div>
+
+                    {/* Day Label */}
+                    <span
+                      className={`text-[11px] transition-colors ${
+                        isHovered ? "font-black text-shopee-orange" : "font-bold text-slate-600"
+                      }`}
+                    >
+                      {chartItem.date}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

@@ -6,30 +6,49 @@ use App\Shared\Http\Response;
 use App\Shared\Middleware\AuthMiddleware;
 
 class CartController {
+    private CartRepository $repo;
+
+    public function __construct() {
+        $this->repo = new CartRepository();
+    }
+
     public function getCart(): void {
         $user = AuthMiddleware::requireAuth();
-        // TODO: Lấy danh sách cart_items theo user_id
-        Response::success([
-            'items' => [],
-            'total_quantity' => 0,
-            'total_amount' => 0.00
-        ], 'Lấy giỏ hàng thành công');
+        $cart = $this->repo->getCartByUserId($user['id']);
+        Response::success($cart, 'Lấy giỏ hàng thành công');
     }
 
     public function addItem(): void {
         $user = AuthMiddleware::requireAuth();
         $data = Request::getBody();
-        Response::success($data, 'Thêm vào giỏ hàng thành công', [], 201);
+        if (empty($data['product_id'])) {
+            Response::error('Thiếu thông tin sản phẩm', [], 400);
+        }
+
+        try {
+            $cart = $this->repo->addItem($user['id'], (int)$data['product_id'], (int)($data['quantity'] ?? 1));
+            Response::success($cart, 'Đã thêm sản phẩm vào giỏ hàng', [], 201);
+        } catch (\Exception $e) {
+            Response::error($e->getMessage(), [], 400);
+        }
     }
 
     public function updateItem(string $id): void {
         $user = AuthMiddleware::requireAuth();
         $data = Request::getBody();
-        Response::success($data, 'Cập nhật giỏ hàng thành công');
+        $quantity = (int)($data['quantity'] ?? 1);
+
+        try {
+            $cart = $this->repo->updateItem($user['id'], (int)$id, $quantity);
+            Response::success($cart, 'Cập nhật giỏ hàng thành công');
+        } catch (\Exception $e) {
+            Response::error($e->getMessage(), [], 400);
+        }
     }
 
     public function removeItem(string $id): void {
         $user = AuthMiddleware::requireAuth();
-        Response::success(null, 'Xóa sản phẩm khỏi giỏ thành công');
+        $cart = $this->repo->removeItem($user['id'], (int)$id);
+        Response::success($cart, 'Đã xóa sản phẩm khỏi giỏ hàng');
     }
 }

@@ -7,14 +7,12 @@ import { Footer } from "@/components/layout/Footer";
 import { ProductCard } from "@/components/shared/ProductCard";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ProductGridSkeleton } from "@/components/shared/LoadingSkeleton";
-import { StorageService } from "@/lib/storage";
+import { getCategories, getProducts } from "@/features/products/product.api";
 import { Product, Category } from "@/types";
 import {
-  Filter,
   SlidersHorizontal,
   ChevronRight,
   RotateCcw,
-  Search,
   Star,
   Layers,
 } from "lucide-react";
@@ -42,8 +40,15 @@ function ProductsContent() {
   const itemsPerPage = 8;
 
   useEffect(() => {
-    StorageService.init();
-    setCategories(StorageService.getCategories());
+    async function loadCategories() {
+      try {
+        const cats = await getCategories();
+        setCategories(cats || []);
+      } catch (err) {
+        console.error("Error loading categories:", err);
+      }
+    }
+    loadCategories();
   }, []);
 
   useEffect(() => {
@@ -54,22 +59,38 @@ function ProductsContent() {
   }, [searchParams]);
 
   useEffect(() => {
+    let isCancelled = false;
     setLoading(true);
+
+    async function fetchFilteredProducts() {
+      try {
+        const res = await getProducts({
+          category_id: selectedCategory,
+          keyword: keyword,
+          min_price: minPrice ? Number(minPrice) : undefined,
+          max_price: maxPrice ? Number(maxPrice) : undefined,
+          rating: minRating,
+          sort: sort as any,
+        });
+        if (!isCancelled) {
+          setProducts(res.items || []);
+          setCurrentPage(1);
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      } finally {
+        if (!isCancelled) setLoading(false);
+      }
+    }
+
     const timer = setTimeout(() => {
-      const { items } = StorageService.getProducts({
-        category_id: selectedCategory,
-        keyword: keyword,
-        min_price: minPrice ? Number(minPrice) : undefined,
-        max_price: maxPrice ? Number(maxPrice) : undefined,
-        rating: minRating,
-        sort: sort as any,
-      });
-      setProducts(items);
-      setCurrentPage(1);
-      setLoading(false);
+      fetchFilteredProducts();
     }, 150);
 
-    return () => clearTimeout(timer);
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
   }, [selectedCategory, keyword, minPrice, maxPrice, minRating, sort]);
 
   const handleResetFilters = () => {
@@ -119,7 +140,7 @@ function ProductsContent() {
 
         {/* Layout Grid: Sidebar + Product Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar Filter Component */}
+          {/* Sidebar Filter */}
           <aside className="space-y-6">
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">

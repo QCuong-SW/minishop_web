@@ -7,13 +7,12 @@ import { Footer } from "@/components/layout/Footer";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { ReviewModal } from "@/components/shared/ReviewModal";
-import { StorageService } from "@/lib/storage";
+import { getOrdersApi, cancelOrderApi } from "@/features/orders/order.api";
 import { useAuth } from "@/context/AuthContext";
 import { Order, OrderStatus } from "@/types";
 import { formatVND, formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 import {
-  Package,
   ChevronRight,
   Clock,
   Truck,
@@ -22,6 +21,7 @@ import {
   Eye,
   Star,
   RefreshCw,
+  Package,
 } from "lucide-react";
 
 export default function OrdersPage() {
@@ -30,26 +30,28 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<string>("ALL");
   const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
 
-  // Review Modal State
   const [reviewModalData, setReviewModalData] = useState<{
     productId: number;
     productName: string;
     orderId: number;
   } | null>(null);
 
-  const fetchOrders = () => {
-    StorageService.init();
-    const list = StorageService.getOrders(user?.id || 2);
-    setOrders(list);
+  const fetchOrders = async () => {
+    try {
+      const list = await getOrdersApi();
+      setOrders(list || []);
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+    }
   };
 
   useEffect(() => {
     fetchOrders();
   }, [user]);
 
-  const handleCancelOrder = (orderId: number) => {
+  const handleCancelOrder = async (orderId: number) => {
     try {
-      StorageService.cancelOrder(orderId);
+      await cancelOrderApi(orderId);
       toast.success("Đã hủy đơn hàng thành công!");
       fetchOrders();
     } catch (err: any) {
@@ -81,7 +83,6 @@ export default function OrdersPage() {
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full space-y-6">
-        {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <Link href="/" className="hover:text-shopee-orange">Trang chủ</Link>
           <ChevronRight className="w-3.5 h-3.5" />
@@ -90,12 +91,14 @@ export default function OrdersPage() {
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900">📑 Đơn Hàng Của Tôi</h1>
+            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
+              <Package className="w-6 h-6 text-shopee-orange" />
+              <span>Đơn Hàng Của Tôi</span>
+            </h1>
             <p className="text-xs text-slate-500">Theo dõi tiến độ vận chuyển và lịch sử mua sắm</p>
           </div>
         </div>
 
-        {/* Status Filter Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2 border-b border-slate-200 scrollbar-none text-xs font-bold">
           {[
             { id: "ALL", label: "Tất Cả" },
@@ -120,7 +123,6 @@ export default function OrdersPage() {
           ))}
         </div>
 
-        {/* Orders List */}
         {filteredOrders.length > 0 ? (
           <div className="space-y-6">
             {filteredOrders.map((order) => {
@@ -132,7 +134,6 @@ export default function OrdersPage() {
                   key={order.id}
                   className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4 hover:shadow-md transition"
                 >
-                  {/* Order Top Bar */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 text-xs">
                     <div className="flex items-center gap-3">
                       <span className="font-mono font-bold text-slate-900 text-sm">
@@ -150,7 +151,6 @@ export default function OrdersPage() {
                     </span>
                   </div>
 
-                  {/* Order Items Snapshot */}
                   <div className="divide-y divide-slate-100">
                     {order.items.map((item) => (
                       <div
@@ -161,6 +161,9 @@ export default function OrdersPage() {
                           <img
                             src={item.product_image_snapshot}
                             alt={item.product_name_snapshot}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600";
+                            }}
                             className="w-14 h-14 rounded-2xl object-cover border border-slate-200 flex-shrink-0"
                           />
                           <div className="space-y-0.5">
@@ -178,15 +181,14 @@ export default function OrdersPage() {
                             {formatVND(item.subtotal)}
                           </span>
 
-                          {/* Rate button if order DELIVERED */}
                           {order.status === "DELIVERED" && (
                             <button
                               type="button"
                               onClick={() =>
                                 setReviewModalData({
-                                  productId: item.product_id,
-                                  productName: item.product_name_snapshot,
-                                  orderId: order.id,
+                                    productId: item.product_id,
+                                    productName: item.product_name_snapshot,
+                                    orderId: order.id,
                                 })
                               }
                               className="px-3 py-1.5 bg-orange-50 text-shopee-orange font-bold text-xs rounded-xl hover:bg-shopee-orange hover:text-white transition flex items-center gap-1"
@@ -199,7 +201,6 @@ export default function OrdersPage() {
                     ))}
                   </div>
 
-                  {/* Order Bottom Bar */}
                   <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="text-xs text-slate-500">
                       <span>Hình thức: </span>
@@ -255,7 +256,6 @@ export default function OrdersPage() {
         )}
       </main>
 
-      {/* Cancel Order Confirm Modal */}
       <ConfirmModal
         isOpen={cancellingOrderId !== null}
         title="Xác nhận hủy đơn hàng?"
@@ -266,7 +266,6 @@ export default function OrdersPage() {
         onCancel={() => setCancellingOrderId(null)}
       />
 
-      {/* Review Modal */}
       {reviewModalData && (
         <ReviewModal
           isOpen={true}

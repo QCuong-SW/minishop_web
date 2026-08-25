@@ -3,33 +3,57 @@ namespace App\Auth;
 
 use App\Shared\Http\Request;
 use App\Shared\Http\Response;
+use App\Shared\Middleware\AuthMiddleware;
 
 class AuthController {
+    private AuthService $service;
+
+    public function __construct() {
+        $this->service = new AuthService();
+    }
+
     public function login(): void {
         $data = Request::getBody();
-        // Mock Login Handler
-        Response::success([
-            'token' => 'mock-jwt-token-2026',
-            'user' => [
-                'id' => 1,
-                'name' => 'Nguyễn Văn Khách',
-                'email' => $data['email'] ?? 'user@shopee.com',
-                'role' => ($data['email'] ?? '') === 'admin@shopee.com' ? 'ADMIN' : 'USER'
-            ]
-        ], 'Đăng nhập thành công');
+        if (empty($data['email']) || empty($data['password'])) {
+            Response::error('Email và mật khẩu không được để trống', [], 400);
+        }
+
+        $result = $this->service->login($data['email'], $data['password']);
+        if (!$result['success']) {
+            Response::error($result['message'], [], 401);
+        }
+
+        Response::success($result['data'], $result['message']);
     }
 
     public function register(): void {
         $data = Request::getBody();
-        Response::success($data, 'Đăng ký tài khoản thành công', [], 201);
+        if (empty($data['name']) || empty($data['email']) || empty($data['password'])) {
+            Response::error('Vui lòng điền đầy đủ họ tên, email và mật khẩu', [], 400);
+        }
+
+        $result = $this->service->register($data);
+        if (!$result['success']) {
+            Response::error($result['message'], [], 400);
+        }
+
+        Response::success($result['data'], $result['message'], [], 201);
     }
 
     public function me(): void {
-        Response::success([
-            'id' => 1,
-            'name' => 'Nguyễn Văn Khách',
-            'email' => 'user@shopee.com',
-            'role' => 'USER'
-        ], 'Lấy thông tin người dùng thành công');
+        $user = AuthMiddleware::requireAuth();
+        Response::success($user, 'Lấy thông tin người dùng thành công');
+    }
+
+    public function getUsers(): void {
+        AuthMiddleware::requireAdmin();
+        $users = $this->service->getAllUsers();
+        Response::success($users, 'Lấy danh sách người dùng thành công');
+    }
+
+    public function toggleUserStatus(string $id): void {
+        AuthMiddleware::requireAdmin();
+        $updated = $this->service->toggleStatus((int)$id);
+        Response::success($updated, 'Cập nhật trạng thái người dùng thành công');
     }
 }

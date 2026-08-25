@@ -1,51 +1,54 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ReviewModal } from "@/components/shared/ReviewModal";
-import { StorageService } from "@/lib/storage";
+import { getOrderByIdApi } from "@/features/orders/order.api";
 import { Order, OrderStatus } from "@/types";
 import { formatVND, formatDate } from "@/lib/utils";
 import {
-  Package,
   ChevronRight,
-  Clock,
-  Truck,
-  CheckCircle2,
   XCircle,
   MapPin,
   CreditCard,
   Printer,
   ArrowLeft,
   Star,
-  RefreshCw,
+  Banknote,
+  Building2,
 } from "lucide-react";
 
 export default function OrderDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Review Modal State
   const [reviewModalData, setReviewModalData] = useState<{
     productId: number;
     productName: string;
     orderId: number;
   } | null>(null);
 
-  useEffect(() => {
-    StorageService.init();
+  const fetchOrderDetail = async () => {
     setLoading(true);
-    const found = StorageService.getOrderById(id);
-    setOrder(found);
-    setLoading(false);
+    try {
+      const found = await getOrderByIdApi(id);
+      setOrder(found);
+    } catch (err) {
+      console.error("Error loading order detail:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrderDetail();
   }, [id]);
 
   if (loading) {
@@ -77,7 +80,6 @@ export default function OrderDetailPage() {
     );
   }
 
-  // Stepper steps
   const steps: { key: OrderStatus; label: string; desc: string }[] = [
     { key: "PENDING", label: "Đặt Hàng", desc: "Chờ duyệt" },
     { key: "CONFIRMED", label: "Đã Xác Nhận", desc: "Đóng gói bưu kiện" },
@@ -109,7 +111,6 @@ export default function OrderDetailPage() {
       <Navbar />
 
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full space-y-8">
-        {/* Top bar & Breadcrumb */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -141,7 +142,6 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* 4-Step Timeline Stepper */}
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
           <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
             Tiến Độ Vận Chuyển
@@ -194,9 +194,7 @@ export default function OrderDetailPage() {
           )}
         </div>
 
-        {/* 2-Column Info: Recipient & Payment Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Shipping Address */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
             <div className="flex items-center gap-2 text-slate-900 font-bold text-sm border-b border-slate-100 pb-3">
               <MapPin className="w-4 h-4 text-shopee-orange" />
@@ -216,17 +214,24 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          {/* Payment & Status */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
             <div className="flex items-center gap-2 text-slate-900 font-bold text-sm border-b border-slate-100 pb-3">
               <CreditCard className="w-4 h-4 text-shopee-orange" />
               <span>Thanh Toán & Hóa Đơn</span>
             </div>
             <div className="space-y-3 text-xs">
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-slate-500">Phương thức:</span>
-                <span className="font-bold text-slate-800">
-                  {order.payment_method === "MOCK_BANKING" ? "🏦 Chuyển khoản ngân hàng" : "💵 Tiền mặt khi nhận (COD)"}
+                <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                  {order.payment_method === "MOCK_BANKING" ? (
+                    <>
+                      <Building2 className="w-4 h-4 text-blue-600" /> Chuyển khoản ngân hàng
+                    </>
+                  ) : (
+                    <>
+                      <Banknote className="w-4 h-4 text-emerald-600" /> Tiền mặt khi nhận (COD)
+                    </>
+                  )}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -249,7 +254,6 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* Itemized Order Table */}
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
           <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
             Danh Sách Sản Phẩm Trong Đơn
@@ -265,6 +269,9 @@ export default function OrderDetailPage() {
                   <img
                     src={item.product_image_snapshot}
                     alt={item.product_name_snapshot}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600";
+                    }}
                     className="w-16 h-16 rounded-2xl object-cover border border-slate-200 flex-shrink-0"
                   />
                   <div className="space-y-1">
@@ -300,7 +307,6 @@ export default function OrderDetailPage() {
             ))}
           </div>
 
-          {/* Pricing Calculation Breakdown */}
           <div className="pt-4 border-t border-slate-100 flex flex-col items-end space-y-2 text-xs">
             <div className="w-full sm:w-72 space-y-2">
               <div className="flex justify-between text-slate-600">
@@ -330,7 +336,6 @@ export default function OrderDetailPage() {
         </div>
       </main>
 
-      {/* Review Modal */}
       {reviewModalData && (
         <ReviewModal
           isOpen={true}
@@ -338,6 +343,7 @@ export default function OrderDetailPage() {
           productName={reviewModalData.productName}
           orderId={reviewModalData.orderId}
           onClose={() => setReviewModalData(null)}
+          onSuccess={() => fetchOrderDetail()}
         />
       )}
 

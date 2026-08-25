@@ -20,20 +20,27 @@ class Router {
         $this->addRoute('DELETE', $path, $handler);
     }
 
+    public function options(string $path, callable|array $handler): void {
+        $this->addRoute('OPTIONS', $path, $handler);
+    }
+
     private function addRoute(string $method, string $path, callable|array $handler): void {
         $this->routes[] = [
             'method' => $method,
-            'path' => $path,
+            'path' => rtrim($path, '/') ?: '/',
             'handler' => $handler
         ];
     }
 
     public function dispatch(string $requestMethod, string $requestUri): void {
+        $requestUri = rtrim($requestUri, '/') ?: '/';
+
         foreach ($this->routes as $route) {
             if ($route['method'] !== $requestMethod) {
                 continue;
             }
 
+            // Convert route pattern: /api/products/{slug} -> /api/products/([^/]+)
             $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '([^/]+)', $route['path']);
             $pattern = "#^" . $pattern . "$#";
 
@@ -55,6 +62,6 @@ class Router {
             }
         }
 
-        Response::error('Endpoint not found', [], 404);
+        Response::error("Endpoint không tồn tại: [{$requestMethod}] {$requestUri}", [], 404);
     }
 }

@@ -1,5 +1,5 @@
 <?php
-// Autoloader đơn giản cho PSR-4 App\ -> src/
+// PSR-4 Autoloader
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';
     $baseDir = __DIR__ . '/../src/';
@@ -17,9 +17,9 @@ spl_autoload_register(function ($class) {
 use App\Shared\Http\Request;
 use App\Shared\Middleware\CorsMiddleware;
 
-// Xử lý CORS Preflight
+// Handle CORS Preflight
 CorsMiddleware::handle();
 
-// Nạp Router và Dispatch
+// Dispatch Router
 $router = require __DIR__ . '/../routes/api.php';
 $router->dispatch(Request::getMethod(), Request::getUri());
