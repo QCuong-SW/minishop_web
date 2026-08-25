@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { formatVND } from "@/lib/utils";
+import { StorageService } from "@/lib/storage";
 import { validateCouponApi, createOrderApi } from "@/features/checkout/checkout.api";
 import { Order, PaymentMethod } from "@/types";
 import { toast } from "sonner";
