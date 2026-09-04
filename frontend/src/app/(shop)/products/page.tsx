@@ -8,6 +8,7 @@ import { ProductCard } from "@/components/shared/ProductCard";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ProductGridSkeleton } from "@/components/shared/LoadingSkeleton";
 import { getCategories, getProducts } from "@/features/products/product.api";
+import { useAuth } from "@/context/AuthContext";
 import { Product, Category } from "@/types";
 import {
   SlidersHorizontal,
@@ -15,11 +16,15 @@ import {
   RotateCcw,
   Star,
   Layers,
+  ShoppingBag,
+  ArrowRight,
 } from "lucide-react";
+import Link from "next/link";
 
 function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -59,6 +64,11 @@ function ProductsContent() {
   }, [searchParams]);
 
   useEffect(() => {
+    if (!user || user.role !== "USER") {
+      setLoading(false);
+      return;
+    }
+
     let isCancelled = false;
     setLoading(true);
 
@@ -91,7 +101,53 @@ function ProductsContent() {
       isCancelled = true;
       clearTimeout(timer);
     };
-  }, [selectedCategory, keyword, minPrice, maxPrice, minRating, sort]);
+  }, [selectedCategory, keyword, minPrice, maxPrice, minRating, sort, user]);
+
+  if (!user || user.role !== "USER") {
+    return (
+      <div className="flex flex-col min-h-screen bg-slate-50">
+        <Navbar />
+        <main className="flex-1 max-w-xl mx-auto px-4 py-16 w-full flex items-center justify-center">
+          <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-xl text-center space-y-6 w-full animate-in zoom-in-95 duration-200">
+            <div className="w-20 h-20 bg-orange-50 text-shopee-orange rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-orange-100">
+              <ShoppingBag className="w-10 h-10 stroke-[2.2]" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full">
+                Yêu Cầu Đăng Nhập
+              </span>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                Danh Mục Sản Phẩm
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
+                {user?.role === "ADMIN"
+                  ? "Bạn đang duyệt cửa hàng ở chế độ Quản Trị Viên (Khách vãng lai). Vui lòng đăng nhập bằng tài khoản Khách Hàng để khám phá kho hàng và mua sắm!"
+                  : "Vui lòng đăng nhập tài khoản Khách Hàng để duyệt toàn bộ kho sản phẩm, sử dụng bộ lọc giá và đặt mua trực tiếp."}
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Link
+                href="/login?redirect=/products"
+                className="w-full py-3.5 px-6 bg-gradient-to-r from-shopee-orange to-amber-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/40 transition active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span>🔐 Đăng Nhập Để Xem Sản Phẩm</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/register?redirect=/products"
+                className="w-full py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span>📝 Đăng Ký Tài Khoản Mới</span>
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const handleResetFilters = () => {
     setSelectedCategory(undefined);

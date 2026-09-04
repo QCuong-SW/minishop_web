@@ -10,6 +10,7 @@ import { RatingStars } from "./RatingStars";
 import { QuantityPicker } from "./QuantityPicker";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -20,6 +21,7 @@ interface QuickViewModalProps {
 export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps) {
   const { addToCart } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
+  const { requireCustomerAuth } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState<string>("");
 
@@ -31,8 +33,16 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
   const isFav = isWishlisted(product.id);
 
   const handleAddToCart = () => {
-    addToCart(product.id, quantity);
-    onClose();
+    if (requireCustomerAuth("thêm sản phẩm vào giỏ hàng", "/cart")) {
+      addToCart(product.id, quantity);
+      onClose();
+    }
+  };
+
+  const handleToggleWishlist = () => {
+    if (requireCustomerAuth("lưu sản phẩm vào danh sách yêu thích", "/wishlist")) {
+      toggleWishlist(product.id);
+    }
   };
 
   return (

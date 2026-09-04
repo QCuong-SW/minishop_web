@@ -2,12 +2,14 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ShoppingCart, Heart, Eye, Ban } from "lucide-react";
 import { Product } from "@/types";
 import { formatVND, calculateDiscountPercent } from "@/lib/utils";
 import { RatingStars } from "./RatingStars";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 import { QuickViewModal } from "./QuickViewModal";
 
 interface ProductCardProps {
@@ -16,8 +18,10 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const router = useRouter();
   const { addToCart } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
+  const { requireCustomerAuth } = useAuth();
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   const [imgSrc, setImgSrc] = useState(
@@ -32,12 +36,41 @@ export function ProductCard({ product }: ProductCardProps) {
   const isFav = isWishlisted(product.id);
   const isOutOfStock = product.stock <= 0 || product.status === "INACTIVE";
 
+  const handleProductClick = (e: React.MouseEvent) => {
+    if (!requireCustomerAuth("xem chi tiết sản phẩm", `/products/${product.slug}`)) {
+      e.preventDefault();
+    }
+  };
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (requireCustomerAuth("lưu sản phẩm vào danh sách yêu thích", `/wishlist`)) {
+      toggleWishlist(product.id);
+    }
+  };
+
+  const handleQuickViewClick = () => {
+    if (requireCustomerAuth("xem nhanh sản phẩm", `/products/${product.slug}`)) {
+      setIsQuickViewOpen(true);
+    }
+  };
+
+  const handleAddToCartClick = () => {
+    if (requireCustomerAuth("thêm sản phẩm vào giỏ hàng", "/cart")) {
+      addToCart(product.id, 1);
+    }
+  };
+
   return (
     <>
       <div className={`group relative bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-orange-200 transition-all duration-300 flex flex-col justify-between overflow-hidden ${isOutOfStock ? "opacity-85" : ""}`}>
         {/* Product Image Container */}
         <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
-          <Link href={`/products/${product.slug}`} className="block w-full h-full">
+          <Link
+            href={`/products/${product.slug}`}
+            onClick={handleProductClick}
+            className="block w-full h-full"
+          >
             <img
               src={imgSrc}
               alt={product.name}
@@ -67,12 +100,9 @@ export function ProductCard({ product }: ProductCardProps) {
           {/* Wishlist Button */}
           <button
             type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              toggleWishlist(product.id);
-            }}
+            onClick={handleWishlistClick}
             aria-label="Yêu thích"
-            className="absolute top-2.5 right-2.5 p-2 rounded-full bg-white/90 backdrop-blur-md shadow-sm hover:bg-white text-slate-500 hover:text-rose-500 transition-all active:scale-90"
+            className="absolute top-2.5 right-2.5 p-2 rounded-full bg-white/90 backdrop-blur-md shadow-sm hover:bg-white text-slate-500 hover:text-rose-500 transition-all active:scale-90 cursor-pointer"
           >
             <Heart className={`w-4 h-4 ${isFav ? "fill-rose-500 text-rose-500" : ""}`} />
           </button>
@@ -81,8 +111,8 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="absolute inset-x-3 bottom-3 hidden md:flex opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
             <button
               type="button"
-              onClick={() => setIsQuickViewOpen(true)}
-              className="w-full py-2 bg-slate-900/80 hover:bg-slate-900 text-white text-xs font-bold rounded-xl backdrop-blur-md shadow-lg flex items-center justify-center gap-1.5 transition active:scale-95"
+              onClick={handleQuickViewClick}
+              className="w-full py-2 bg-slate-900/80 hover:bg-slate-900 text-white text-xs font-bold rounded-xl backdrop-blur-md shadow-lg flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5" /> Xem Nhanh
             </button>
@@ -104,6 +134,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
             <Link
               href={`/products/${product.slug}`}
+              onClick={handleProductClick}
               className="font-bold text-slate-800 text-xs sm:text-sm hover:text-shopee-orange transition line-clamp-2 leading-snug min-h-[2rem] sm:min-h-[2.5rem]"
               title={product.name}
             >
@@ -135,9 +166,9 @@ export function ProductCard({ product }: ProductCardProps) {
 
               <button
                 type="button"
-                onClick={() => addToCart(product.id, 1)}
+                onClick={handleAddToCartClick}
                 disabled={isOutOfStock}
-                className={`p-2 sm:p-2.5 rounded-xl transition-all shadow-sm flex-shrink-0 ${
+                className={`p-2 sm:p-2.5 rounded-xl transition-all shadow-sm flex-shrink-0 cursor-pointer ${
                   isOutOfStock
                     ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                     : "bg-orange-50 text-shopee-orange hover:bg-shopee-orange hover:text-white active:scale-90"
