@@ -37,8 +37,8 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
   const [mode, setMode] = useState<"login" | "register">(initialMode);
 
   // Login Form States
-  const [loginEmail, setLoginEmail] = useState("admin@minishop.vn");
-  const [loginPassword, setLoginPassword] = useState("admin123");
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Register Form States
@@ -290,42 +290,11 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
               <div className="w-1/2 pr-3 flex-shrink-0 space-y-4">
                 <div className="space-y-0.5">
                   <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                    Chào Mừng Trở Lại! 👋
+                    Chào Mừng Trở Lại! 
                   </h1>
                   <p className="text-[11px] text-slate-500">
                     Nhập thông tin tài khoản để tiếp tục mua sắm
                   </p>
-                </div>
-
-                {/* Demo Fast Logins Section */}
-                <div className="bg-gradient-to-r from-orange-50/90 via-amber-50/70 to-orange-50/90 p-3 rounded-2xl border border-orange-200/80 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-orange-950">
-                      <Zap className="w-3 h-3 text-shopee-orange fill-shopee-orange" />
-                      <span>1-Click Đăng Nhập Demo:</span>
-                    </div>
-                    <span className="text-[9px] font-extrabold bg-orange-200/70 text-orange-800 px-1.5 py-0.5 rounded-full">
-                      Khuyên dùng
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      disabled={loading}
-                      onClick={() => handleDemoLogin("USER")}
-                      className="py-1.5 px-2.5 bg-shopee-orange hover:bg-shopee-hover text-white text-[11px] font-bold rounded-lg shadow-sm transition active:scale-95 flex items-center justify-center gap-1 disabled:opacity-50 cursor-pointer"
-                    >
-                      <UserCheck className="w-3.5 h-3.5" /> 1-Click User
-                    </button>
-                    <button
-                      type="button"
-                      disabled={loading}
-                      onClick={() => handleDemoLogin("ADMIN")}
-                      className="py-1.5 px-2.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold rounded-lg shadow-sm transition active:scale-95 flex items-center justify-center gap-1 disabled:opacity-50 cursor-pointer"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5 text-purple-400" /> 1-Click Admin
-                    </button>
-                  </div>
                 </div>
 
                 {/* Compact Inputs */}
@@ -396,7 +365,7 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
               <div className="w-1/2 pl-3 flex-shrink-0 space-y-3.5">
                 <div className="space-y-0.5">
                   <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                    Tạo Tài Khoản Mới ✨
+                    Tạo Tài Khoản Mới 
                   </h1>
                   <p className="text-[11px] text-slate-500">
                     Nhận ngay voucher 50.000 đ khi hoàn tất đăng ký
