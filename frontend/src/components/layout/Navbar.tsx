@@ -43,7 +43,7 @@ export function Navbar() {
   const isCustomerUser = isAuthenticated && user && user.role === "USER";
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all">
+    <header className="fixed md:sticky top-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all">
       {/* Top Admin Preview Strip (Only visible when logged in as Admin checking the Store UI) */}
       {isAdmin && (
         <div className="bg-slate-950 text-white text-xs px-4 py-2 border-b border-purple-500/30">

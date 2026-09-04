@@ -14,8 +14,8 @@ export function MobileBottomNav() {
   const { wishlistCount } = useWishlist();
   const { isAuthenticated, user } = useAuth();
 
-  // Hide on Admin pages
-  if (pathname.startsWith("/admin")) {
+  // Hide on Admin and Auth pages
+  if (pathname.startsWith("/admin") || pathname === "/login" || pathname === "/register") {
     return null;
   }
 
