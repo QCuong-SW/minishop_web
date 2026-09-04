@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className="scroll-smooth">
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased flex flex-col pt-16 md:pt-0 pb-16 md:pb-0">
+      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased flex flex-col pb-16 md:pb-0">
         <AuthProvider>
           <CartProvider>
             <WishlistProvider>
