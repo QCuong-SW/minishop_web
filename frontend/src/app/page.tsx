@@ -91,37 +91,37 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen bg-slate-50">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full space-y-10">
+      <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 w-full space-y-8 sm:space-y-10">
         {/* Hero Banner Slider / Section */}
-        <section className="relative hero-glow-container light-sweep rounded-3xl overflow-hidden bg-gradient-to-r from-orange-600 via-shopee-orange to-amber-500 text-white shadow-2xl p-8 md:p-14 border border-orange-300/40">
+        <section className="relative hero-glow-container light-sweep rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-r from-orange-600 via-shopee-orange to-amber-500 text-white shadow-2xl p-5 sm:p-8 md:p-14 border border-orange-300/40">
           <div className="absolute -right-12 -bottom-12 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute right-1/4 -top-12 w-64 h-64 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="relative z-10 max-w-2xl space-y-5">
-            <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase">
+          <div className="relative z-10 max-w-2xl space-y-3.5 sm:space-y-5">
+            <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide uppercase">
               <Flame className="w-3.5 h-3.5" /> Siêu Khuyến Mãi 2026
             </span>
 
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
               Khám Phá Phong Cách <br />
               <span className="text-amber-200">Trải Nghiệm Đỉnh Cao</span>
             </h1>
 
-            <p className="text-orange-100 text-sm md:text-base leading-relaxed max-w-xl">
+            <p className="text-orange-100 text-xs sm:text-sm md:text-base leading-relaxed max-w-xl">
               Hàng ngàn sản phẩm thời trang xu hướng, giày sneaker và phụ kiện công nghệ chính hãng.
               Ưu đãi giảm giá tới 50% cùng dịch vụ đặt hẹn thử đồ trực tiếp tại Showroom.
             </p>
 
-            <div className="flex flex-wrap items-center gap-3 pt-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2 sm:pt-3">
               <Link
                 href="/products"
-                className="inline-flex items-center gap-2 bg-white text-shopee-orange font-black px-7 py-3.5 rounded-2xl shadow-xl hover:bg-orange-50 hover:shadow-orange-950/20 transition active:scale-95 text-sm"
+                className="inline-flex items-center justify-center gap-2 bg-white text-shopee-orange font-black px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl shadow-xl hover:bg-orange-50 hover:shadow-orange-950/20 transition active:scale-95 text-xs sm:text-sm text-center"
               >
                 Mua Sắm Ngay <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href="/appointments"
-                className="inline-flex items-center gap-2 bg-black/30 backdrop-blur-md text-white font-bold px-6 py-3.5 rounded-2xl hover:bg-black/40 transition active:scale-95 text-sm border border-white/20"
+                className="inline-flex items-center justify-center gap-2 bg-black/30 backdrop-blur-md text-white font-bold px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl hover:bg-black/40 transition active:scale-95 text-xs sm:text-sm border border-white/20 text-center"
               >
                 <Calendar className="w-4 h-4" /> Đặt Lịch Showroom
               </Link>
@@ -258,7 +258,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {flashSaleProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -270,14 +270,14 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-shopee-orange" />
-              <h2 className="text-xl font-bold text-slate-800">Gợi Ý Hôm Nay Dành Cho Bạn</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-slate-800">Gợi Ý Hôm Nay Dành Cho Bạn</h2>
             </div>
 
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start sm:self-auto text-xs font-bold">
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-stretch sm:self-auto overflow-x-auto text-xs font-bold no-scrollbar">
               <button
                 type="button"
                 onClick={() => setActiveTab("all")}
-                className={`px-3.5 py-1.5 rounded-lg transition ${
+                className={`px-3 py-1.5 rounded-lg transition flex-shrink-0 ${
                   activeTab === "all"
                     ? "bg-shopee-orange text-white shadow"
                     : "text-slate-600 hover:text-slate-900"
@@ -288,7 +288,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("hot")}
-                className={`px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 flex-shrink-0 ${
                   activeTab === "hot"
                     ? "bg-shopee-orange text-white shadow"
                     : "text-slate-600 hover:text-slate-900"
@@ -300,7 +300,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("new")}
-                className={`px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 flex-shrink-0 ${
                   activeTab === "new"
                     ? "bg-shopee-orange text-white shadow"
                     : "text-slate-600 hover:text-slate-900"
@@ -312,19 +312,19 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("discount")}
-                className={`px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 flex-shrink-0 ${
                   activeTab === "discount"
                     ? "bg-shopee-orange text-white shadow"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                <Tag className={`w-3.5 h-3.5 ${activeTab === "discount" ? "text-white" : "text-amber-500"}`} />
-                <span>Giá Tốt</span>
+                <Tag className={`w-3.5 h-3.5 ${activeTab === "discount" ? "text-white" : "text-emerald-500"}`} />
+                <span>Giảm Giá Sốc</span>
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {getFilteredProducts().map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
