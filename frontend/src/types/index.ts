@@ -154,6 +154,7 @@ export interface DashboardStats {
     total_revenue: number;
     total_orders: number;
     total_products: number;
+    total_categories?: number;
     total_users: number;
   };
   recent_orders: {
