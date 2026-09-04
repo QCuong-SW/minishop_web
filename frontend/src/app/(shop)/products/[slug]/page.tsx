@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { getProductBySlug, getProducts, getProductReviews } from "@/features/products/product.api";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 import { Product, Review } from "@/types";
 import { formatVND, calculateDiscountPercent, formatDate } from "@/lib/utils";
 import {
@@ -25,6 +26,8 @@ import {
   RotateCcw,
   Calendar,
   MessageSquare,
+  Package,
+  ArrowRight,
 } from "lucide-react";
 
 export default function ProductDetailPage() {
@@ -34,6 +37,7 @@ export default function ProductDetailPage() {
 
   const { addToCart } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
+  const { user } = useAuth();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -44,6 +48,11 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState<"desc" | "specs" | "policy">("desc");
 
   useEffect(() => {
+    if (!user || user.role !== "USER") {
+      setLoading(false);
+      return;
+    }
+
     let isCancelled = false;
     setLoading(true);
 
@@ -56,26 +65,72 @@ export default function ProductDetailPage() {
 
           const [revs, rel] = await Promise.all([
             getProductReviews(prod.id),
-            getProducts({ category_id: prod.category_id, limit: 5 }),
+            getProducts({ category_id: prod.category_id, limit: 4 }),
           ]);
-
           if (!isCancelled) {
-            setReviews(revs || prod.reviews || []);
-            setRelatedProducts((rel.items || []).filter((p) => p.id !== prod.id).slice(0, 4));
+            setReviews(revs || []);
+            setRelatedProducts((rel.items || []).filter((p) => p.id !== prod.id));
           }
         }
       } catch (err) {
-        console.error("Error loading product details:", err);
+        console.error("Error loading product detail:", err);
       } finally {
         if (!isCancelled) setLoading(false);
       }
     }
 
     loadProductDetail();
+
     return () => {
       isCancelled = true;
     };
-  }, [slug]);
+  }, [slug, user]);
+
+  if (!user || user.role !== "USER") {
+    return (
+      <div className="flex flex-col min-h-screen bg-slate-50">
+        <Navbar />
+        <main className="flex-1 max-w-xl mx-auto px-4 py-16 w-full flex items-center justify-center">
+          <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-xl text-center space-y-6 w-full animate-in zoom-in-95 duration-200">
+            <div className="w-20 h-20 bg-orange-50 text-shopee-orange rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-orange-100">
+              <Package className="w-10 h-10 stroke-[2.2]" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full">
+                Yêu Cầu Đăng Nhập
+              </span>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                Chi Tiết Sản Phẩm
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
+                {user?.role === "ADMIN"
+                  ? "Bạn đang duyệt cửa hàng ở chế độ Quản Trị Viên (Khách vãng lai). Vui lòng đăng nhập bằng tài khoản Khách Hàng để xem chi tiết sản phẩm và đặt mua!"
+                  : "Vui lòng đăng nhập tài khoản Khách Hàng để xem ảnh chất lượng cao, chọn size/màu sắc và thêm vào giỏ hàng."}
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Link
+                href={`/login?redirect=/products/${slug}`}
+                className="w-full py-3.5 px-6 bg-gradient-to-r from-shopee-orange to-amber-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/40 transition active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span>🔐 Đăng Nhập Để Xem Chi Tiết</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/products"
+                className="w-full py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span>🛍️ Danh Sách Sản Phẩm</span>
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
