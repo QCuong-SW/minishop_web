@@ -136,7 +136,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Product Main Container */}
-        <div className="bg-white rounded-3xl p-6 md:p-10 border border-slate-200/80 shadow-sm grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-10 border border-slate-200/80 shadow-sm grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10">
           {/* Left Column: Image Gallery */}
           <div className="space-y-4">
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-slate-100 border border-slate-200 shadow-inner group">
