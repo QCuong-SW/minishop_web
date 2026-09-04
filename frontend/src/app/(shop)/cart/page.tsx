@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { QuantityPicker } from "@/components/shared/QuantityPicker";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { formatVND } from "@/lib/utils";
 import { StorageService } from "@/lib/storage";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ import {
 
 export default function CartPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const {
     cart,
     selectedCount,
