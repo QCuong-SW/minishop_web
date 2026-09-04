@@ -4,11 +4,15 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Store, ShieldCheck, LogOut, ChevronDown } from "lucide-react";
+import { Store, ShieldCheck, LogOut, ChevronDown, Menu } from "lucide-react";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { toast } from "sonner";
 
-export function AdminHeader() {
+interface AdminHeaderProps {
+  onToggleSidebar?: () => void;
+}
+
+export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -39,24 +43,38 @@ export function AdminHeader() {
 
   return (
     <>
-      <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5" /> HỆ THỐNG QUẢN TRỊ ADMIN
+      <header className="h-16 bg-white border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile Sidebar Hamburger Toggle */}
+          {onToggleSidebar && (
+            <button
+              type="button"
+              onClick={onToggleSidebar}
+              aria-label="Mở menu quản trị"
+              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 md:hidden"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+
+          <span className="text-[11px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1.5 truncate">
+            <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="truncate">ADMIN PORTAL</span>
           </span>
-          <span className="text-slate-300">|</span>
-          <span className="text-xs text-slate-500 hidden sm:inline">
+          <span className="text-slate-300 hidden sm:inline">|</span>
+          <span className="text-xs text-slate-500 hidden md:inline">
             Chào mừng <strong className="text-slate-800">{adminName}</strong>
           </span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Link
             href="/"
-            className="flex items-center gap-1.5 text-xs font-bold text-shopee-orange bg-orange-50 hover:bg-orange-100 px-3.5 py-2 rounded-xl transition border border-orange-200"
+            className="flex items-center gap-1.5 text-xs font-bold text-shopee-orange bg-orange-50 hover:bg-orange-100 px-2.5 sm:px-3.5 py-2 rounded-xl transition border border-orange-200"
+            title="Xem giao diện khách hàng"
           >
-            <Store className="w-3.5 h-3.5" />
-            <span>Xem Giao Diện Khách Hàng</span>
+            <Store className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="hidden sm:inline">Xem Cửa Hàng</span>
           </Link>
 
           {/* Admin Profile Dropdown with Seamless Hover Bridge & Click Support */}

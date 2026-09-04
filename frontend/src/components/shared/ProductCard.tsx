@@ -90,44 +90,44 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Content Details */}
-        <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-          <div className="space-y-1.5">
+        <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2.5 sm:space-y-3">
+          <div className="space-y-1 sm:space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+              <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider block truncate max-w-[100px]">
                 {product.category_name || "Sản phẩm"}
               </span>
               {isOutOfStock && (
-                <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded">
+                <span className="text-[9px] sm:text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded">
                   Hết hàng
                 </span>
               )}
             </div>
             <Link
               href={`/products/${product.slug}`}
-              className="font-bold text-slate-800 text-sm hover:text-shopee-orange transition line-clamp-2 leading-snug"
+              className="font-bold text-slate-800 text-xs sm:text-sm hover:text-shopee-orange transition line-clamp-2 leading-snug min-h-[2rem] sm:min-h-[2.5rem]"
               title={product.name}
             >
               {product.name}
             </Link>
           </div>
 
-          <div className="space-y-2.5 pt-1">
+          <div className="space-y-2 pt-0.5 sm:pt-1">
             {/* Rating & Sold count */}
-            <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center justify-between text-[11px] gap-1">
               <RatingStars rating={product.rating_avg} size="sm" showText count={product.rating_count} />
-              <span className="text-[11px] text-slate-500 font-medium">
+              <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">
                 Đã bán {product.sold_count || 50}+
               </span>
             </div>
 
             {/* Price & Add to Cart */}
-            <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-              <div className="flex flex-col">
-                <span className="text-base md:text-lg font-black text-shopee-orange">
+            <div className="flex items-center justify-between pt-1.5 border-t border-slate-100">
+              <div className="flex flex-col min-w-0 pr-1">
+                <span className="text-sm sm:text-base font-black text-shopee-orange truncate">
                   {formatVND(product.price)}
                 </span>
                 {product.original_price && product.original_price > product.price && (
-                  <span className="text-[11px] text-slate-400 line-through">
+                  <span className="text-[10px] sm:text-[11px] text-slate-400 line-through truncate">
                     {formatVND(product.original_price)}
                   </span>
                 )}
@@ -137,14 +137,14 @@ export function ProductCard({ product }: ProductCardProps) {
                 type="button"
                 onClick={() => addToCart(product.id, 1)}
                 disabled={isOutOfStock}
-                className={`p-2.5 rounded-xl transition-all shadow-sm ${
+                className={`p-2 sm:p-2.5 rounded-xl transition-all shadow-sm flex-shrink-0 ${
                   isOutOfStock
                     ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                     : "bg-orange-50 text-shopee-orange hover:bg-shopee-orange hover:text-white active:scale-90"
                 }`}
                 title={isOutOfStock ? "Sản phẩm đã hết hàng" : "Thêm vào giỏ hàng"}
               >
-                <ShoppingCart className="w-4 h-4" />
+                <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>

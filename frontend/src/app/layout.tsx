@@ -1,10 +1,11 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 
 const inter = Inter({ subsets: ["latin", "vietnamese"] });
 
@@ -21,11 +22,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className="scroll-smooth">
-      <body className={`${inter.className} min-h-screen bg-slate-50 text-slate-900 antialiased flex flex-col`}>
+      <body className={`${inter.className} min-h-screen bg-slate-50 text-slate-900 antialiased flex flex-col pb-14 md:pb-0`}>
         <AuthProvider>
           <CartProvider>
             <WishlistProvider>
               {children}
+              <MobileBottomNav />
               <Toaster
                 position="top-right"
                 richColors
