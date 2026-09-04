@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ReviewModal } from "@/components/shared/ReviewModal";
 import { getOrderByIdApi } from "@/features/orders/order.api";
+import { useAuth } from "@/context/AuthContext";
 import { Order, OrderStatus } from "@/types";
 import { formatVND, formatDate } from "@/lib/utils";
 import {
@@ -20,11 +21,13 @@ import {
   Star,
   Banknote,
   Building2,
+  Package,
 } from "lucide-react";
 
 export default function OrderDetailPage() {
   const params = useParams();
   const id = params.id as string;
+  const { user } = useAuth();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,8 +51,55 @@ export default function OrderDetailPage() {
   };
 
   useEffect(() => {
-    fetchOrderDetail();
-  }, [id]);
+    if (user && user.role === "USER") {
+      fetchOrderDetail();
+    } else {
+      setLoading(false);
+    }
+  }, [id, user]);
+
+  if (!user || user.role !== "USER") {
+    return (
+      <div className="flex flex-col min-h-screen bg-slate-50">
+        <Navbar />
+        <main className="flex-1 max-w-xl mx-auto px-4 py-16 w-full flex items-center justify-center">
+          <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-xl text-center space-y-6 w-full animate-in zoom-in-95 duration-200">
+            <div className="w-20 h-20 bg-orange-50 text-shopee-orange rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-orange-100">
+              <Package className="w-10 h-10 stroke-[2.2]" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full">
+                Yêu Cầu Đăng Nhập
+              </span>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                Chi Tiết Đơn Hàng
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
+                Vui lòng đăng nhập bằng tài khoản Khách Hàng để tra cứu chi tiết hóa đơn và hành trình giao nhận.
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Link
+                href={`/login?redirect=/orders/${id}`}
+                className="w-full py-3.5 px-6 bg-gradient-to-r from-shopee-orange to-amber-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/40 transition active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span>🔐 Đăng Nhập Tra Cứu</span>
+              </Link>
+              <Link
+                href="/orders"
+                className="w-full py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span>📦 Danh Sách Đơn Hàng</span>
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
