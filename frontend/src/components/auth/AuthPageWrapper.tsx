@@ -249,8 +249,8 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
         {/* Right 7 Cols: Form Sliding Viewport */}
         <div className="lg:col-span-7 p-5 sm:p-7 flex flex-col justify-between overflow-hidden">
           {/* Top Sliding Tab Switcher */}
-          <div className="mb-4">
-            <div className="bg-slate-100/90 p-1 rounded-xl flex items-center max-w-xs w-full shadow-inner border border-slate-200/60">
+          <div className="mb-4 flex justify-center w-full">
+            <div className="bg-slate-100/90 p-1 rounded-xl flex items-center w-full max-w-xs sm:max-w-sm shadow-inner border border-slate-200/60">
               <button
                 type="button"
                 onClick={() => switchMode("login")}
