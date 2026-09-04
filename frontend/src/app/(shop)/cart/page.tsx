@@ -54,6 +54,11 @@ export default function CartPage() {
       toast.error("Có sản phẩm trong giỏ hàng đã hết hàng hoặc không đủ tồn kho. Vui lòng điều chỉnh trước khi thanh toán!");
       return;
     }
+    if (!user || user.role !== "USER") {
+      toast.error("Vui lòng đăng nhập tài khoản Khách hàng để tiến hành thanh toán!");
+      router.push("/login?redirect=/checkout");
+      return;
+    }
     router.push("/checkout");
   };
 
