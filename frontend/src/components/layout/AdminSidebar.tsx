@@ -94,8 +94,8 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
 
   return (
     <>
-      {/* Desktop Persistent Sidebar */}
-      <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 min-h-screen flex-col border-r border-slate-800 flex-shrink-0">
+      {/* Desktop Persistent Fixed/Sticky Sidebar */}
+      <aside className="hidden md:flex w-64 bg-slate-900 text-slate-300 h-screen sticky top-0 flex-col border-r border-slate-800 flex-shrink-0 overflow-y-auto no-scrollbar z-30">
         {sidebarContent}
       </aside>
 
