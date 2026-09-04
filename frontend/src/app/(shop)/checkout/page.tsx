@@ -163,6 +163,62 @@ export default function CheckoutPage() {
     }
   };
 
+  // Guard: If guest or not logged in as Customer (USER), show Auth Barrier
+  if (!user || user.role !== "USER") {
+    return (
+      <div className="flex flex-col min-h-screen bg-slate-50">
+        <Navbar />
+        <main className="flex-1 max-w-xl mx-auto px-4 py-16 w-full flex items-center justify-center">
+          <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-xl text-center space-y-6 w-full animate-in zoom-in-95 duration-200">
+            <div className="w-20 h-20 bg-orange-50 text-shopee-orange rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-orange-100">
+              <CreditCard className="w-10 h-10 stroke-[2.2]" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full">
+                Yêu Cầu Đăng Nhập Khách Hàng
+              </span>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                Tiến Hành Thanh Toán
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
+                {user?.role === "ADMIN"
+                  ? "Bạn đang duyệt cửa hàng ở chế độ Quản Trị Viên (Khách vãng lai). Vui lòng đăng nhập bằng tài khoản Khách Hàng để trải nghiệm đặt hàng và thanh toán!"
+                  : "Để đảm bảo quyền lợi bảo hành, tích điểm và theo dõi trạng thái vận chuyển, vui lòng đăng nhập tài khoản Khách Hàng trước khi đặt hàng."}
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Link
+                href="/login?redirect=/checkout"
+                className="w-full py-3.5 px-6 bg-gradient-to-r from-shopee-orange to-amber-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/40 transition active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span>🔐 Đăng Nhập Để Thanh Toán</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/register?redirect=/checkout"
+                className="w-full py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span>📝 Đăng Ký Tài Khoản Mới</span>
+              </Link>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100">
+              <Link
+                href="/cart"
+                className="text-xs font-semibold text-slate-400 hover:text-shopee-orange transition"
+              >
+                &larr; Quay lại Giỏ Hàng
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   // If order was successfully created, show celebratory success screen
   if (createdOrder) {
     return (

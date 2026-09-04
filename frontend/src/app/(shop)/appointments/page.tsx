@@ -46,6 +46,10 @@ export default function AppointmentsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user || user.role !== "USER") {
+      toast.error("Vui lòng đăng nhập tài khoản Khách Hàng để đặt lịch hẹn trải nghiệm Showroom!");
+      return;
+    }
     if (!date) {
       toast.error("Vui lòng chọn ngày hẹn!");
       return;
