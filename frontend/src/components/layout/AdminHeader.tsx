@@ -43,7 +43,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
 
   return (
     <>
-      <header className="h-16 bg-white border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+      <header className="h-16 bg-white/98 backdrop-blur-md border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between sticky top-0 inset-x-0 z-40 shadow-sm">
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Mobile Sidebar Hamburger Toggle */}
           {onToggleSidebar && (
