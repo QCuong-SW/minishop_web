@@ -62,7 +62,7 @@ export default function AdminProductsPage() {
     setPrice(150000);
     setOriginalPrice(200000);
     setStock(50);
-    setImageUrl("https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600");
+    setImageUrl("");
     setDescription("");
     setStatus("ACTIVE");
     setIsModalOpen(true);
@@ -398,15 +398,26 @@ export default function AdminProductsPage() {
 
               {/* Image URL & Live Preview */}
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-700 block">Link Ảnh URL (*)</label>
+                <label className="font-bold text-slate-700 block">Hình Ảnh Sản Phẩm (*)</label>
                 <div className="flex gap-3 items-center">
                   <input
-                    type="url"
-                    required
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
-                    className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shopee-orange"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 2 * 1024 * 1024) {
+                          toast.error("Kích thước ảnh quá lớn, vui lòng chọn ảnh < 2MB");
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setImageUrl(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shopee-orange file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-shopee-orange hover:file:bg-orange-100 cursor-pointer"
                   />
                   {imageUrl && (
                     <img
