@@ -33,7 +33,7 @@ class UserRepository {
             ':name' => $data['name'],
             ':email' => $data['email'],
             ':password' => $hash,
-            ':role' => $data['role'] ?? 'USER',
+            ':role' => 'USER',
             ':avatar_url' => $avatar,
             ':phone' => $data['phone'] ?? null,
             ':address' => $data['address'] ?? null,

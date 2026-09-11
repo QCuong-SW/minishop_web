@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { CartItem } from "@/types";
 import { StorageService } from "@/lib/storage";
 import { addToCartApi, getCartApi, removeCartItemApi, updateCartItemApi } from "@/features/cart/cart.api";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
 interface CartContextType {
@@ -23,6 +24,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
@@ -40,7 +42,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     StorageService.init();
     refreshCart();
     setMounted(true);
-  }, []);
+  }, [user?.id]);
 
   const addToCart = async (productId: number, quantity: number = 1) => {
     try {

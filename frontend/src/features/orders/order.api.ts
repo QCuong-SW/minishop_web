@@ -8,7 +8,9 @@ export const getOrdersApi = async (): Promise<Order[]> => {
     {},
     () => {
       const currentUser = StorageService.getCurrentUser();
-      return StorageService.getOrders(currentUser?.id || 2);
+      if (!currentUser) return [];
+      if (StorageService.isSystemAdmin(currentUser)) return StorageService.getOrders();
+      return StorageService.getOrders(currentUser.id);
     }
   );
 };
