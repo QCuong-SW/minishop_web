@@ -74,6 +74,9 @@ class AuthService {
     }
 
     public function toggleStatus(int $userId): ?array {
+        if ($userId === 1) {
+            return null;
+        }
         return $this->repo->toggleStatus($userId);
     }
 }
