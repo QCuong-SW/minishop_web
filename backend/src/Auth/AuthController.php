@@ -54,6 +54,9 @@ class AuthController {
     public function toggleUserStatus(string $id): void {
         AuthMiddleware::requireAdmin();
         $updated = $this->service->toggleStatus((int)$id);
+        if (!$updated) {
+            Response::error('Không thể cập nhật tài khoản quản trị viên duy nhất', [], 400);
+        }
         Response::success($updated, 'Cập nhật trạng thái người dùng thành công');
     }
 }

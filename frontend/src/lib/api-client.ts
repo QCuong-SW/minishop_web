@@ -9,11 +9,16 @@ export async function apiFetch<T>(
   fallbackFn?: () => T
 ): Promise<T> {
   const currentUser = typeof window !== "undefined" ? StorageService.getCurrentUser() : null;
-  const headers = {
+  const token = typeof window !== "undefined" ? StorageService.getAuthToken() : null;
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "X-User-Id": currentUser ? currentUser.id.toString() : "1",
-    ...(options.headers || {}),
+    ...((options.headers || {}) as Record<string, string>),
   };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  } else if (currentUser) {
+    headers["X-User-Id"] = currentUser.id.toString();
+  }
 
   try {
     const controller = new AbortController();

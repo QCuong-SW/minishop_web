@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { StorageService } from "@/lib/storage";
 import { Category } from "@/types";
 import { slugify } from "@/lib/utils";
@@ -13,6 +13,8 @@ import {
   Trash2,
   X,
   Package,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 export default function AdminCategoriesPage() {
@@ -20,6 +22,7 @@ export default function AdminCategoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   // Form Fields
   const [name, setName] = useState("");
@@ -63,6 +66,7 @@ export default function AdminCategoriesPage() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!name.trim()) {
       toast.error("Vui lòng nhập tên danh mục!");
       return;
@@ -84,6 +88,7 @@ export default function AdminCategoriesPage() {
           ? "Đã cập nhật danh mục thành công!"
           : "Đã tạo danh mục mới!"
       );
+
       setIsModalOpen(false);
       fetchCategories();
     } catch (err: any) {
@@ -103,15 +108,16 @@ export default function AdminCategoriesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
-            <Layers className="w-6 h-6 text-shopee-orange" />
+          <h1 className="flex items-center gap-2 text-xl font-black text-slate-900 sm:text-2xl sm:gap-2.5">
+            <Layers className="h-5 w-5 shrink-0 text-shopee-orange sm:h-6 sm:w-6" />
             <span>Quản Lý Danh Mục Sản Phẩm</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+
+          <p className="mt-1 text-[11px] leading-5 text-slate-500 sm:text-xs">
             Phân loại hàng hóa giúp khách hàng tìm kiếm sản phẩm dễ dàng hơn
           </p>
         </div>
@@ -119,18 +125,134 @@ export default function AdminCategoriesPage() {
         <button
           type="button"
           onClick={handleOpenAdd}
-          className="px-5 py-2.5 bg-shopee-orange text-white font-bold text-xs rounded-xl shadow-md hover:bg-shopee-hover flex items-center gap-2 transition active:scale-95 self-start sm:self-auto"
+          className="flex w-fit items-center gap-2 self-start rounded-xl bg-shopee-orange px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-shopee-hover active:scale-95 sm:self-auto sm:px-5"
         >
-          <Plus className="w-4 h-4" /> Thêm Danh Mục Mới
+          <Plus className="h-4 w-4" />
+          Thêm Danh Mục Mới
         </button>
       </div>
 
-      {/* Categories Table */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+      {/* Mobile Cards */}
+      <div className="space-y-3 md:hidden">
+        {categories.map((cat) => {
+          const expanded = expandedId === cat.id;
+
+          return (
+            <article
+              key={cat.id}
+              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+            >
+              <div className="p-4">
+                <div className="flex items-start gap-3">
+                  <img
+                    src={cat.image_url}
+                    alt={cat.name}
+                    className="h-14 w-14 shrink-0 rounded-2xl border border-slate-200 object-cover"
+                  />
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-black leading-5 text-slate-900">
+                          {cat.name}
+                        </h3>
+                        <p className="mt-1 break-all font-mono text-[11px] text-slate-400">
+                          /{cat.slug}
+                        </p>
+                      </div>
+
+                      <span className="flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-700">
+                        <Package className="h-3 w-3 text-shopee-orange" />
+                        {cat.product_count || 0}
+                      </span>
+                    </div>
+
+                    <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-600">
+                      {cat.description || "Chưa có mô tả cho danh mục này."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(expanded ? null : cat.id)}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100"
+                  >
+                    {expanded ? (
+                      <>
+                        Thu gọn <ChevronUp className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        Xem thêm <ChevronDown className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(cat)}
+                    className="flex items-center justify-center gap-1.5 rounded-xl bg-orange-50 px-3 py-2.5 text-xs font-bold text-shopee-orange transition hover:bg-orange-100"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    Sửa
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDeletingId(cat.id)}
+                    className="flex items-center justify-center rounded-xl bg-rose-50 p-2.5 text-rose-600 transition hover:bg-rose-100"
+                    aria-label={`Xóa ${cat.name}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {expanded && (
+                <div className="border-t border-slate-100 bg-slate-50/60 p-4 text-xs">
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                        Đường dẫn (slug)
+                      </p>
+                      <p className="mt-1 break-all font-mono text-slate-700">
+                        {cat.slug}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                        Mô tả
+                      </p>
+                      <p className="mt-1 leading-5 text-slate-700">
+                        {cat.description || "—"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                        Số sản phẩm
+                      </p>
+                      <p className="mt-1 font-bold text-slate-900">
+                        {cat.product_count || 0} sản phẩm
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm md:block">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full border-collapse text-left text-xs">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+              <tr className="border-b border-slate-200 bg-slate-50/80 font-bold uppercase tracking-wider text-slate-500">
                 <th className="p-4">Hình Ảnh</th>
                 <th className="p-4">Tên Danh Mục</th>
                 <th className="p-4">Đường Dẫn (Slug)</th>
@@ -139,44 +261,53 @@ export default function AdminCategoriesPage() {
                 <th className="p-4 text-right">Thao Tác</th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-slate-100">
               {categories.map((cat) => (
-                <tr key={cat.id} className="hover:bg-slate-50/50 transition">
+                <tr key={cat.id} className="transition hover:bg-slate-50/50">
                   <td className="p-4">
                     <img
                       src={cat.image_url}
                       alt={cat.name}
-                      className="w-12 h-12 rounded-2xl object-cover border border-slate-200"
+                      className="h-12 w-12 rounded-2xl border border-slate-200 object-cover"
                     />
                   </td>
-                  <td className="p-4 font-bold text-slate-900 text-sm">{cat.name}</td>
+
+                  <td className="p-4 text-sm font-bold text-slate-900">
+                    {cat.name}
+                  </td>
+
                   <td className="p-4 font-mono text-slate-500">{cat.slug}</td>
-                  <td className="p-4 text-slate-600 max-w-xs truncate">
+
+                  <td className="max-w-xs truncate p-4 text-slate-600">
                     {cat.description || "—"}
                   </td>
+
                   <td className="p-4">
-                    <span className="font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[11px] flex items-center gap-1 w-max">
-                      <Package className="w-3 h-3 text-shopee-orange" />
+                    <span className="flex w-max items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700">
+                      <Package className="h-3 w-3 text-shopee-orange" />
                       {cat.product_count || 0} sản phẩm
                     </span>
                   </td>
+
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(cat)}
-                        className="p-2 text-slate-600 hover:text-shopee-orange hover:bg-orange-50 rounded-xl transition"
+                        className="rounded-xl p-2 text-slate-600 transition hover:bg-orange-50 hover:text-shopee-orange"
                         title="Chỉnh sửa"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="h-4 w-4" />
                       </button>
+
                       <button
                         type="button"
                         onClick={() => setDeletingId(cat.id)}
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
+                        className="rounded-xl p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
                         title="Xóa"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
@@ -189,59 +320,78 @@ export default function AdminCategoriesPage() {
 
       {/* Add / Edit Category Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Layers className="w-5 h-5 text-shopee-orange" />
-                <span>{editingCategory ? "Chỉnh Sửa Danh Mục" : "Thêm Danh Mục Mới"}</span>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border border-slate-100 bg-white p-4 shadow-2xl sm:max-w-lg sm:rounded-3xl sm:p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 -mx-4 -mt-4 mb-5 flex items-center justify-between border-b border-slate-100 bg-white px-4 py-4 sm:-mx-6 sm:-mt-6 sm:px-6">
+              <h2 className="flex items-center gap-2 text-base font-bold text-slate-900">
+                <Layers className="h-5 w-5 text-shopee-orange" />
+                <span>
+                  {editingCategory ? "Chỉnh Sửa Danh Mục" : "Thêm Danh Mục Mới"}
+                </span>
               </h2>
+
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                aria-label="Đóng"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
             <form onSubmit={handleSave} className="space-y-4 text-xs">
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-700 block">Tên danh mục (*)</label>
+                <label className="block font-bold text-slate-700">
+                  Tên danh mục (*)
+                </label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   placeholder="Thời Trang Nam, Đồ Công Nghệ..."
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shopee-orange"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-shopee-orange"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-700 block">Slug URL</label>
+                <label className="block font-bold text-slate-700">Slug URL</label>
                 <input
                   type="text"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="thoi-trang-nam"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shopee-orange font-mono"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-mono focus:outline-none focus:ring-2 focus:ring-shopee-orange"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-700 block">Hình Ảnh Danh Mục (*)</label>
-                <div className="flex gap-3 items-center">
+                <label className="block font-bold text-slate-700">
+                  Hình Ảnh Danh Mục (*)
+                </label>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
+
                       if (file) {
                         if (file.size > 2 * 1024 * 1024) {
-                          toast.error("Kích thước ảnh quá lớn, vui lòng chọn ảnh < 2MB");
+                          toast.error(
+                            "Kích thước ảnh quá lớn, vui lòng chọn ảnh < 2MB"
+                          );
                           return;
                         }
+
                         const reader = new FileReader();
                         reader.onloadend = () => {
                           setImageUrl(reader.result as string);
@@ -249,40 +399,44 @@ export default function AdminCategoriesPage() {
                         reader.readAsDataURL(file);
                       }
                     }}
-                    className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shopee-orange file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-shopee-orange hover:file:bg-orange-100 cursor-pointer"
+                    className="w-full min-w-0 cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-shopee-orange file:mr-3 file:rounded-full file:border-0 file:bg-orange-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-shopee-orange hover:file:bg-orange-100"
                   />
+
                   {imageUrl && (
                     <img
                       src={imageUrl}
                       alt="Preview"
-                      className="w-10 h-10 rounded-xl object-cover border border-slate-200 flex-shrink-0"
+                      className="h-14 w-14 shrink-0 rounded-xl border border-slate-200 object-cover sm:h-10 sm:w-10"
                     />
                   )}
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-700 block">Mô tả ngắn</label>
+                <label className="block font-bold text-slate-700">
+                  Mô tả ngắn
+                </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Mô tả các mặt hàng thuộc nhóm này..."
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-shopee-orange resize-none"
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 focus:outline-none focus:ring-2 focus:ring-shopee-orange"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50"
+                  className="w-full rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:w-auto"
                 >
                   Hủy
                 </button>
+
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-shopee-orange text-white font-bold text-xs rounded-xl shadow hover:bg-shopee-hover transition active:scale-95"
+                  className="w-full rounded-xl bg-shopee-orange px-6 py-2.5 text-xs font-bold text-white shadow transition hover:bg-shopee-hover active:scale-95 sm:w-auto"
                 >
                   {editingCategory ? "Lưu Thay Đổi" : "Tạo Danh Mục"}
                 </button>

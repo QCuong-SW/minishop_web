@@ -55,6 +55,10 @@ export const registerApi = async (data: {
     },
     () => {
       const users = StorageService.getUsers();
+      const exists = users.some((u) => u.email.toLowerCase() === data.email.toLowerCase().trim());
+      if (exists) {
+        throw new Error("Email này đã được sử dụng");
+      }
       const newId = users.length ? Math.max(...users.map((u) => u.id)) + 1 : 10;
       const newUser: User = {
         id: newId,
@@ -66,6 +70,7 @@ export const registerApi = async (data: {
         status: "ACTIVE",
         created_at: new Date().toISOString(),
       };
+      localStorage.setItem("shopee_mini_users", JSON.stringify([...users, newUser]));
       StorageService.setCurrentUser(newUser);
       return {
         user: newUser,
