@@ -7,6 +7,9 @@ use App\Shared\Database\Database;
 use PDO;
 
 class AuthMiddleware {
+    private const ADMIN_ID = 1;
+    private const ADMIN_EMAIL = 'admin@minishop.vn';
+
     public static function getAuthenticatedUser(): ?array {
         $headers = Request::getHeaders();
 
@@ -62,7 +65,11 @@ class AuthMiddleware {
 
     public static function requireAdmin(): array {
         $user = self::requireAuth();
-        if (($user['role'] ?? '') !== 'ADMIN') {
+        if (
+            (int)($user['id'] ?? 0) !== self::ADMIN_ID ||
+            ($user['email'] ?? '') !== self::ADMIN_EMAIL ||
+            ($user['role'] ?? '') !== 'ADMIN'
+        ) {
             Response::error('Bạn không có quyền quản trị viên', [], 403);
         }
         return $user;

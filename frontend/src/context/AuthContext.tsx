@@ -12,11 +12,18 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isCustomerUser: boolean;
+  isAuthReady: boolean;
   login: (email: string, password?: string) => Promise<boolean>;
   demoLogin: (role?: UserRole | "user" | "admin" | "USER" | "ADMIN") => Promise<void>;
   loginAsDemoUser: () => Promise<void>;
   loginAsDemoAdmin: () => Promise<void>;
-  register: (name: string, email: string, password?: string, phone?: string, address?: string) => Promise<boolean>;
+  register: (
+    name: string,
+    email: string,
+    password?: string,
+    phone?: string,
+    address?: string
+  ) => Promise<boolean>;
   logout: () => void;
   openAuthModal: (actionName?: string, redirectUrl?: string) => void;
   closeAuthModal: () => void;
@@ -27,30 +34,55 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
-  // Auth Required Modal State
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [modalActionName, setModalActionName] = useState("sử dụng tính năng này");
   const [modalRedirectUrl, setModalRedirectUrl] = useState("/");
 
   useEffect(() => {
     StorageService.init();
+
     async function loadCurrentUser() {
+      // Quan trọng: restore localStorage ngay lập tức trước.
+      const cachedUser = StorageService.getCurrentUser();
+      const cachedToken = StorageService.getAuthToken();
+
+      if (cachedUser) {
+        setUser(cachedUser);
+      }
+
+      // Nếu không có session cũ thì auth đã sẵn sàng.
+      if (!cachedUser && !cachedToken) {
+        setIsAuthReady(true);
+        return;
+      }
+
       try {
-        const u = await getMeApi();
-        setUser(u);
+        // Sau đó mới đồng bộ/verify với backend.
+        const freshUser = await getMeApi();
+
+        if (freshUser) {
+          setUser(freshUser);
+          StorageService.setCurrentUser(freshUser);
+        } else if (!cachedUser) {
+          setUser(null);
+        }
       } catch {
-        const u = StorageService.getCurrentUser();
-        setUser(u);
+        // Backend/network lỗi: giữ session local thay vì logout.
+        setUser(cachedUser);
       } finally {
-        setMounted(true);
+        setIsAuthReady(true);
       }
     }
+
     loadCurrentUser();
   }, []);
 
-  const openAuthModal = (actionName: string = "sử dụng tính năng này", redirectUrl: string = "/") => {
+  const openAuthModal = (
+    actionName: string = "sử dụng tính năng này",
+    redirectUrl: string = "/"
+  ) => {
     setModalActionName(actionName);
     setModalRedirectUrl(redirectUrl);
     setIsAuthModalOpen(true);
@@ -60,19 +92,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthModalOpen(false);
   };
 
-  const requireCustomerAuth = (actionName: string = "sử dụng tính năng này", redirectUrl: string = "/"): boolean => {
+  const requireCustomerAuth = (
+    actionName: string = "sử dụng tính năng này",
+    redirectUrl: string = "/"
+  ): boolean => {
+    if (!isAuthReady) return false;
+
     if (user && user.role === "USER") {
       return true;
     }
+
     openAuthModal(actionName, redirectUrl);
     return false;
   };
 
-  const login = async (email: string, password?: string): Promise<boolean> => {
+  const login = async (
+    email: string,
+    password?: string
+  ): Promise<boolean> => {
     try {
       const res = await loginApi(email, password);
-      setUser(res.user);
+
+      // Lưu localStorage trước rồi mới cập nhật React state.
       StorageService.setCurrentUser(res.user);
+      StorageService.setAuthToken(res.token || null);
+      setUser(res.user);
+      setIsAuthReady(true);
+
       toast.success(`Đăng nhập thành công! Chào mừng ${res.user.name}`);
       setIsAuthModalOpen(false);
       return true;
@@ -90,8 +136,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await login("admin@minishop.vn", "admin123");
   };
 
-  const demoLogin = async (role: UserRole | "user" | "admin" | "USER" | "ADMIN" = "USER") => {
+  const demoLogin = async (
+    role: UserRole | "user" | "admin" | "USER" | "ADMIN" = "USER"
+  ) => {
     const normalized = String(role).toUpperCase();
+
     if (normalized === "ADMIN") {
       await loginAsDemoAdmin();
     } else {
@@ -107,9 +156,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     address?: string
   ): Promise<boolean> => {
     try {
-      const res = await registerApi({ name, email, password, phone, address });
-      setUser(res.user);
+      const res = await registerApi({
+        name,
+        email,
+        password,
+        phone,
+        address,
+      });
+
       StorageService.setCurrentUser(res.user);
+      StorageService.setAuthToken(res.token || null);
+      setUser(res.user);
+      setIsAuthReady(true);
+
       toast.success(`Đăng ký thành công! Chào mừng ${res.user.name}`);
       setIsAuthModalOpen(false);
       return true;
@@ -121,7 +180,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     StorageService.setCurrentUser(null);
+    StorageService.setAuthToken(null);
     setUser(null);
+    setIsAuthReady(true);
     toast.info("Đã đăng xuất tài khoản");
   };
 
@@ -130,10 +191,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user: mounted ? user : null,
-        isAuthenticated: !!user,
-        isAdmin: user?.role === "ADMIN",
-        isCustomerUser,
+        user,
+        isAuthenticated: isAuthReady && !!user,
+        isAdmin: isAuthReady && StorageService.isSystemAdmin(user),
+        isCustomerUser: isAuthReady && isCustomerUser,
+        isAuthReady,
         login,
         demoLogin,
         loginAsDemoUser,
@@ -146,6 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
+
       <AuthRequiredModal
         isOpen={isAuthModalOpen}
         onClose={closeAuthModal}
@@ -158,8 +221,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
+
   return context;
 }

@@ -48,8 +48,11 @@ export const createOrderApi = async (payload: {
     },
     () => {
       const currentUser = StorageService.getCurrentUser();
+      if (!currentUser || currentUser.role !== "USER") {
+        throw new Error("Vui lòng đăng nhập tài khoản khách hàng để đặt hàng");
+      }
       return StorageService.createOrder({
-        user_id: currentUser?.id || 2,
+        user_id: currentUser.id,
         customer_name: payload.shipping_name,
         shipping_name: payload.shipping_name,
         shipping_phone: payload.shipping_phone,
