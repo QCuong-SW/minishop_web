@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { StorageService } from "@/lib/storage";
 import { getWishlistApi, toggleWishlistApi } from "@/features/wishlist/wishlist.api";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { Product } from "@/types";
 
@@ -18,6 +19,7 @@ interface WishlistContextType {
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [wishlistIds, setWishlistIds] = useState<number[]>([]);
   const [mounted, setMounted] = useState(false);
 
@@ -35,7 +37,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     StorageService.init();
     refreshWishlist();
     setMounted(true);
-  }, []);
+  }, [user?.id]);
 
   const toggleWishlist = async (productId: number) => {
     try {

@@ -34,7 +34,28 @@ const KEYS = {
   APPOINTMENTS: "shopee_mini_appointments",
   REVIEWS: "shopee_mini_reviews",
   AUTH: "shopee_mini_auth_user",
+  AUTH_TOKEN: "shopee_mini_auth_token",
 };
+
+const ADMIN_USER_ID = 1;
+const ADMIN_EMAIL = "admin@minishop.vn";
+
+function isSystemAdmin(user: User | null | undefined): boolean {
+  return !!user && user.id === ADMIN_USER_ID && user.email === ADMIN_EMAIL && user.role === "ADMIN";
+}
+
+function normalizeUser(user: User): User {
+  if (user.id === ADMIN_USER_ID || user.email === ADMIN_EMAIL) {
+    return { ...user, id: ADMIN_USER_ID, name: "Quản Văn Lý", email: ADMIN_EMAIL, role: "ADMIN" };
+  }
+  return { ...user, role: "USER" };
+}
+
+function getScopedKey(baseKey: string, userId?: number): string {
+  const id = userId ?? getItem<User | null>(KEYS.AUTH, null)?.id;
+  if (!id) return `${baseKey}:guest`;
+  return `${baseKey}:user:${id}`;
+}
 
 // Safe helper for localStorage
 function getItem<T>(key: string, defaultValue: T): T {
@@ -62,28 +83,18 @@ export const StorageService = {
     if (!localStorage.getItem(KEYS.USERS)) {
       setItem(KEYS.USERS, INITIAL_USERS);
     } else {
-      // Auto-update admin name to Quản Văn Lý
+      // Keep exactly one system admin; every other account remains a customer.
       const cachedUsers = getItem<User[]>(KEYS.USERS, []);
-      let userUpdated = false;
-      const updatedUsers = cachedUsers.map((u) => {
-        if (u.id === 1 || u.role === "ADMIN" || u.email === "admin@minishop.vn") {
-          if (u.name !== "Quản Văn Lý") {
-            userUpdated = true;
-            return { ...u, name: "Quản Văn Lý", email: "admin@minishop.vn" };
-          }
-        }
-        return u;
-      });
+      const updatedUsers = cachedUsers.map(normalizeUser);
+      const userUpdated = JSON.stringify(cachedUsers) !== JSON.stringify(updatedUsers);
       if (userUpdated) {
         setItem(KEYS.USERS, updatedUsers);
       }
     }
     // Also update active session if logged in as admin
     const currentAuth = getItem<User | null>(KEYS.AUTH, null);
-    if (currentAuth && (currentAuth.id === 1 || currentAuth.role === "ADMIN")) {
-      if (currentAuth.name !== "Quản Văn Lý") {
-        setItem(KEYS.AUTH, { ...currentAuth, name: "Quản Văn Lý", email: "admin@minishop.vn" });
-      }
+    if (currentAuth) {
+      setItem(KEYS.AUTH, normalizeUser(currentAuth));
     }
     if (!localStorage.getItem(KEYS.CATEGORIES)) setItem(KEYS.CATEGORIES, INITIAL_CATEGORIES);
     if (!localStorage.getItem(KEYS.PRODUCTS)) {
@@ -143,7 +154,6 @@ export const StorageService = {
     }
     if (!localStorage.getItem(KEYS.APPOINTMENTS)) setItem(KEYS.APPOINTMENTS, INITIAL_APPOINTMENTS);
     if (!localStorage.getItem(KEYS.REVIEWS)) setItem(KEYS.REVIEWS, INITIAL_REVIEWS);
-    if (!localStorage.getItem(KEYS.WISHLIST)) setItem(KEYS.WISHLIST, [108, 109]);
   },
 
   resetToSeed() {
@@ -155,25 +165,40 @@ export const StorageService = {
     setItem(KEYS.ORDERS, INITIAL_ORDERS);
     setItem(KEYS.APPOINTMENTS, INITIAL_APPOINTMENTS);
     setItem(KEYS.REVIEWS, INITIAL_REVIEWS);
-    setItem(KEYS.WISHLIST, [108, 109]);
-    setItem(KEYS.CART, []);
+    setItem(getScopedKey(KEYS.WISHLIST, 2), [108, 109]);
+    setItem(getScopedKey(KEYS.CART, 2), []);
   },
 
   // Auth User
   getCurrentUser(): User | null {
-    return getItem<User | null>(KEYS.AUTH, INITIAL_USERS[1]); // Default to User (Nguyễn Văn Khách)
+    return getItem<User | null>(KEYS.AUTH, null);
   },
 
   setCurrentUser(user: User | null): void {
-    setItem(KEYS.AUTH, user);
+    setItem(KEYS.AUTH, user ? normalizeUser(user) : null);
+  },
+
+  getAuthToken(): string | null {
+    return getItem<string | null>(KEYS.AUTH_TOKEN, null);
+  },
+
+  setAuthToken(token: string | null): void {
+    setItem(KEYS.AUTH_TOKEN, token);
+  },
+
+  isSystemAdmin(user?: User | null): boolean {
+    return isSystemAdmin(user ?? this.getCurrentUser());
   },
 
   // Users
   getUsers(): User[] {
-    return getItem<User[]>(KEYS.USERS, INITIAL_USERS);
+    return getItem<User[]>(KEYS.USERS, INITIAL_USERS).map(normalizeUser);
   },
 
   toggleUserStatus(userId: number): User[] {
+    if (userId === ADMIN_USER_ID) {
+      throw new Error("Không thể khóa tài khoản quản trị viên duy nhất");
+    }
     const users = this.getUsers().map((u) => {
       if (u.id === userId) {
         return {
@@ -389,7 +414,7 @@ export const StorageService = {
 
   // Cart
   getCart(): CartItem[] {
-    return getItem<CartItem[]>(KEYS.CART, []);
+    return getItem<CartItem[]>(getScopedKey(KEYS.CART), []);
   },
 
   addToCart(productId: number, quantity: number = 1): CartItem[] {
@@ -427,7 +452,7 @@ export const StorageService = {
       });
     }
 
-    setItem(KEYS.CART, cart);
+    setItem(getScopedKey(KEYS.CART), cart);
     return cart;
   },
 
@@ -447,7 +472,7 @@ export const StorageService = {
       }
     }
 
-    setItem(KEYS.CART, cart);
+    setItem(getScopedKey(KEYS.CART), cart);
     return cart;
   },
 
@@ -456,30 +481,32 @@ export const StorageService = {
     const target = cart.find((item) => item.product_id === productId);
     if (target) {
       target.selected = !target.selected;
-      setItem(KEYS.CART, cart);
+      setItem(getScopedKey(KEYS.CART), cart);
     }
     return cart;
   },
 
   toggleSelectAllCart(selected: boolean): CartItem[] {
     const cart = this.getCart().map((item) => ({ ...item, selected }));
-    setItem(KEYS.CART, cart);
+    setItem(getScopedKey(KEYS.CART), cart);
     return cart;
   },
 
   removeFromCart(productId: number): CartItem[] {
     const cart = this.getCart().filter((item) => item.product_id !== productId);
-    setItem(KEYS.CART, cart);
+    setItem(getScopedKey(KEYS.CART), cart);
     return cart;
   },
 
   clearCart(): void {
-    setItem(KEYS.CART, []);
+    setItem(getScopedKey(KEYS.CART), []);
   },
 
   // Wishlist
   getWishlist(): number[] {
-    return getItem<number[]>(KEYS.WISHLIST, [108, 109]);
+    const currentUser = this.getCurrentUser();
+    const defaultWishlist = currentUser?.id === 2 ? [108, 109] : [];
+    return getItem<number[]>(getScopedKey(KEYS.WISHLIST), defaultWishlist);
   },
 
   toggleWishlist(productId: number): { isWishlisted: boolean; wishlist: number[] } {
@@ -490,7 +517,7 @@ export const StorageService = {
     } else {
       wishlist = [...wishlist, productId];
     }
-    setItem(KEYS.WISHLIST, wishlist);
+    setItem(getScopedKey(KEYS.WISHLIST), wishlist);
     return { isWishlisted: !exists, wishlist };
   },
 
@@ -571,7 +598,8 @@ export const StorageService = {
   },
 
   getOrderById(id: number | string): Order | null {
-    const orders = this.getOrders();
+    const currentUser = this.getCurrentUser();
+    const orders = this.isSystemAdmin(currentUser) ? this.getOrders() : this.getOrders(currentUser?.id);
     return (
       orders.find((o) => o.id.toString() === id.toString() || o.order_code === id.toString()) ||
       null
@@ -698,9 +726,13 @@ export const StorageService = {
   },
 
   cancelOrder(orderId: number): Order[] {
-    const orders = this.getOrders();
+    const currentUser = this.getCurrentUser();
+    const orders = this.isSystemAdmin(currentUser) ? this.getOrders() : this.getOrders(currentUser?.id);
     const target = orders.find((o) => o.id === orderId);
     if (!target) throw new Error("Không tìm thấy đơn hàng");
+    if (!this.isSystemAdmin(currentUser) && target.user_id !== currentUser?.id) {
+      throw new Error("Bạn không có quyền hủy đơn hàng này");
+    }
     if (target.status !== "PENDING") {
       throw new Error("Chỉ có thể hủy đơn hàng đang ở trạng thái Chờ duyệt (PENDING)!");
     }
@@ -796,6 +828,7 @@ export const StorageService = {
     const orders = this.getOrders();
     const products = this.getProducts().items;
     const users = this.getUsers();
+    const customers = users.filter((u) => u.role === "USER");
 
     const deliveredOrders = orders.filter(
       (o) => o.status === "DELIVERED" || o.payment_status === "PAID"
@@ -826,7 +859,7 @@ export const StorageService = {
         total_revenue: totalRevenue || 15420000,
         total_orders: orders.length,
         total_products: products.length,
-        total_users: users.length,
+        total_users: customers.length,
       },
       recent_orders: recentOrders,
       sales_chart: salesChart,

@@ -8,7 +8,9 @@ export const getAppointmentsApi = async (): Promise<Appointment[]> => {
     {},
     () => {
       const currentUser = StorageService.getCurrentUser();
-      return StorageService.getAppointments(currentUser?.id || 2);
+      if (!currentUser) return [];
+      if (StorageService.isSystemAdmin(currentUser)) return StorageService.getAppointments();
+      return StorageService.getAppointments(currentUser.id);
     }
   );
 };
@@ -31,8 +33,11 @@ export const createAppointmentApi = async (payload: {
     },
     () => {
       const currentUser = StorageService.getCurrentUser();
+      if (!currentUser || currentUser.role !== "USER") {
+        throw new Error("Vui lòng đăng nhập tài khoản khách hàng để đặt lịch");
+      }
       return StorageService.createAppointment({
-        user_id: currentUser?.id || 2,
+        user_id: currentUser.id,
         user_name: payload.customer_name,
         user_phone: payload.customer_phone,
         appointment_date: payload.appointment_date,
