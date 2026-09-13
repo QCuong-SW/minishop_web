@@ -24,12 +24,12 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const menuItems = [
-    { href: "/admin", label: "Tổng Quan (Dashboard)", icon: LayoutDashboard },
+    { href: "/admin", label: "Tổng quan quản trị", icon: LayoutDashboard },
     { href: "/admin/products", label: "Quản Lý Sản Phẩm", icon: Package },
     { href: "/admin/categories", label: "Quản Lý Danh Mục", icon: Layers },
     { href: "/admin/orders", label: "Quản Lý Đơn Hàng", icon: ShoppingBag },
-    { href: "/admin/coupons", label: "Mã Giảm Giá (Coupons)", icon: Ticket },
-    { href: "/admin/appointments", label: "Lịch Hẹn Showroom", icon: Calendar },
+    { href: "/admin/coupons", label: "Mã giảm giá", icon: Ticket },
+    { href: "/admin/appointments", label: "Lịch hẹn cửa hàng", icon: Calendar },
     { href: "/admin/users", label: "Khách Hàng & Quyền", icon: Users },
   ];
 
@@ -44,10 +44,10 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
 
             <div className="min-w-0">
               <h2 className="truncate text-base font-black leading-tight tracking-tight text-white">
-                MiniShop<span className="text-shopee-orange"> Admin</span>
+                MiniShop<span className="text-shopee-orange"> Quản trị</span>
               </h2>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Control Panel
+                Bảng điều khiển
               </p>
             </div>
           </div>

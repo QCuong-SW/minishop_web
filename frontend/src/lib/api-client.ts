@@ -1,13 +1,17 @@
 import { StorageService } from "./storage";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "https://minishop-ea3l.onrender.com/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+const API_TIMEOUT_MS = 2500;
 
 export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit = {},
   fallbackFn?: () => T
 ): Promise<T> {
+  if (!BASE_URL && fallbackFn) {
+    return fallbackFn();
+  }
+
   const currentUser = typeof window !== "undefined" ? StorageService.getCurrentUser() : null;
   const token = typeof window !== "undefined" ? StorageService.getAuthToken() : null;
   const headers: Record<string, string> = {
@@ -22,7 +26,7 @@ export async function apiFetch<T>(
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout for Cloud / Local API
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       ...options,
