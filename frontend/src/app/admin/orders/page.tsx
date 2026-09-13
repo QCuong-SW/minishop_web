@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { StorageService } from "@/lib/storage";
+import { getMiniShopChangedKey, MINISHOP_DATA_CHANGE_EVENT, StorageService } from "@/lib/storage";
 import { Order, OrderStatus } from "@/types";
 import { formatVND, formatDate } from "@/lib/utils";
 import { toast } from "sonner";
@@ -70,6 +70,19 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+
+    const refreshOrders = (event: Event) => {
+      const key = getMiniShopChangedKey(event);
+      if (key.includes("orders")) {
+        fetchOrders();
+      }
+    };
+    window.addEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshOrders);
+    window.addEventListener("storage", refreshOrders);
+    return () => {
+      window.removeEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshOrders);
+      window.removeEventListener("storage", refreshOrders);
+    };
   }, []);
 
   const handleStatusChange = (orderId: number, newStatus: OrderStatus) => {
@@ -189,7 +202,7 @@ export default function AdminOrdersPage() {
                         Thanh toán
                       </p>
                       <p className="mt-1 text-xs font-bold text-slate-800">
-                        {ord.payment_method === "MOCK_BANKING" ? "Mock Banking" : "COD"}
+                        {ord.payment_method === "MOCK_BANKING" ? "Ngân hàng mô phỏng" : "COD"}
                       </p>
                       <p
                         className={`mt-0.5 text-[10px] font-bold ${
@@ -327,7 +340,7 @@ export default function AdminOrdersPage() {
                     <td className="p-4">
                       <span className="block font-semibold text-slate-800">
                         {ord.payment_method === "MOCK_BANKING"
-                          ? "Mock Banking"
+                          ? "Ngân hàng mô phỏng"
                           : "COD"}
                       </span>
                       <span
@@ -459,7 +472,7 @@ export default function AdminOrdersPage() {
                     Thanh toán:{" "}
                     <strong>
                       {viewingOrder.payment_method === "MOCK_BANKING"
-                        ? "Mock Banking"
+                        ? "Ngân hàng mô phỏng"
                         : "COD"}
                     </strong>
                   </p>

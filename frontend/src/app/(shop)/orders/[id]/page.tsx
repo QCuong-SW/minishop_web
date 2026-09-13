@@ -11,6 +11,7 @@ import { getOrderByIdApi } from "@/features/orders/order.api";
 import { useAuth } from "@/context/AuthContext";
 import { Order, OrderStatus } from "@/types";
 import { formatVND, formatDate } from "@/lib/utils";
+import { getMiniShopChangedKey, MINISHOP_DATA_CHANGE_EVENT } from "@/lib/storage";
 import {
   ChevronRight,
   XCircle,
@@ -56,6 +57,19 @@ export default function OrderDetailPage() {
     } else {
       setLoading(false);
     }
+
+    const refreshOrderDetail = (event: Event) => {
+      const key = getMiniShopChangedKey(event);
+      if (key.includes("orders")) {
+        fetchOrderDetail();
+      }
+    };
+    window.addEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshOrderDetail);
+    window.addEventListener("storage", refreshOrderDetail);
+    return () => {
+      window.removeEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshOrderDetail);
+      window.removeEventListener("storage", refreshOrderDetail);
+    };
   }, [id, user]);
 
   if (!user || user.role !== "USER") {
@@ -63,8 +77,8 @@ export default function OrderDetailPage() {
       <div className="flex flex-col min-h-screen bg-slate-50">
         <Navbar />
         <main className="flex-1 max-w-xl mx-auto px-4 py-16 w-full flex items-center justify-center">
-          <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-xl text-center space-y-6 w-full animate-in zoom-in-95 duration-200">
-            <div className="w-20 h-20 bg-orange-50 text-shopee-orange rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-orange-100">
+          <div className="reveal-soft bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-xl text-center space-y-6 w-full">
+            <div className="cart-pulse w-20 h-20 bg-orange-50 text-shopee-orange rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-orange-100">
               <Package className="w-10 h-10 stroke-[2.2]" />
             </div>
 
@@ -106,7 +120,7 @@ export default function OrderDetailPage() {
       <div className="flex flex-col min-h-screen bg-slate-50">
         <Navbar />
         <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full text-center">
-          <p className="text-sm text-slate-500">Đang tải chi tiết đơn hàng...</p>
+          <p className="reveal-soft text-sm text-slate-500">Đang tải chi tiết đơn hàng...</p>
         </main>
         <Footer />
       </div>
@@ -118,12 +132,14 @@ export default function OrderDetailPage() {
       <div className="flex flex-col min-h-screen bg-slate-50">
         <Navbar />
         <main className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full">
-          <EmptyState
-            title="Không tìm thấy đơn hàng"
-            description="Mã đơn hàng không tồn tại hoặc bạn không có quyền truy cập đơn hàng này."
-            actionText="Quay lại danh sách đơn"
-            actionHref="/orders"
-          />
+          <div className="reveal-soft">
+            <EmptyState
+              title="Không tìm thấy đơn hàng"
+              description="Mã đơn hàng không tồn tại hoặc bạn không có quyền truy cập đơn hàng này."
+              actionText="Quay lại danh sách đơn"
+              actionHref="/orders"
+            />
+          </div>
         </main>
         <Footer />
       </div>
@@ -161,7 +177,7 @@ export default function OrderDetailPage() {
       <Navbar />
 
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 reveal-up">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <Link href="/" className="hover:text-shopee-orange">Trang chủ</Link>
@@ -179,26 +195,26 @@ export default function OrderDetailPage() {
             <button
               type="button"
               onClick={() => window.print()}
-              className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-50 shadow-sm flex items-center gap-1.5 transition"
+              className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-50 hover:-translate-y-0.5 shadow-sm flex items-center gap-1.5 transition"
             >
               <Printer className="w-4 h-4" /> In hóa đơn
             </button>
             <Link
               href="/orders"
-              className="px-4 py-2 bg-slate-900 text-white font-semibold text-xs rounded-xl hover:bg-slate-800 transition flex items-center gap-1.5"
+              className="px-4 py-2 bg-slate-900 text-white font-semibold text-xs rounded-xl hover:bg-slate-800 hover:-translate-y-0.5 transition flex items-center gap-1.5"
             >
               <ArrowLeft className="w-4 h-4" /> Danh sách đơn
             </Link>
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
+        <div className="reveal-soft reveal-delay-1 bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
           <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
             Tiến Độ Vận Chuyển
           </h3>
 
           {isCancelled ? (
-            <div className="p-4 bg-rose-50 rounded-2xl border border-rose-200 flex items-center gap-3 text-rose-700">
+            <div className="reveal-soft p-4 bg-rose-50 rounded-2xl border border-rose-200 flex items-center gap-3 text-rose-700">
               <XCircle className="w-6 h-6 flex-shrink-0" />
               <div>
                 <p className="font-bold text-sm">Đơn hàng đã bị hủy</p>
@@ -214,7 +230,8 @@ export default function OrderDetailPage() {
                 return (
                   <div
                     key={step.key}
-                    className={`p-4 rounded-2xl border transition-all text-center space-y-2 relative ${
+                    style={{ animationDelay: `${120 + index * 90}ms` }}
+                    className={`reveal-soft p-4 rounded-2xl border transition-all text-center space-y-2 relative ${
                       isCurrent
                         ? "bg-orange-50/80 border-shopee-orange shadow-md scale-102"
                         : isPassed
@@ -225,7 +242,7 @@ export default function OrderDetailPage() {
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto text-xs font-bold ${
                         isCurrent
-                          ? "bg-shopee-orange text-white shadow"
+                          ? "cart-pulse bg-shopee-orange text-white shadow"
                           : isPassed
                           ? "bg-emerald-500 text-white"
                           : "bg-slate-200 text-slate-500"
@@ -244,8 +261,8 @@ export default function OrderDetailPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 reveal-up reveal-delay-2">
+          <div className="reveal-soft bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
             <div className="flex items-center gap-2 text-slate-900 font-bold text-sm border-b border-slate-100 pb-3">
               <MapPin className="w-4 h-4 text-shopee-orange" />
               <span>Địa Chỉ Giao Hàng</span>
@@ -264,7 +281,7 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+          <div className="reveal-soft reveal-delay-1 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
             <div className="flex items-center gap-2 text-slate-900 font-bold text-sm border-b border-slate-100 pb-3">
               <CreditCard className="w-4 h-4 text-shopee-orange" />
               <span>Thanh Toán & Hóa Đơn</span>
@@ -293,7 +310,7 @@ export default function OrderDetailPage() {
                       : "bg-amber-50 text-amber-700 border border-amber-200"
                   }`}
                 >
-                  {order.payment_status === "PAID" ? "Đã Thanh Toán (PAID)" : "Chưa Thanh Toán (UNPAID)"}
+                  {order.payment_status === "PAID" ? "Đã thanh toán" : "Chưa thanh toán"}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -304,16 +321,17 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
+        <div className="reveal-up reveal-delay-3 bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
           <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">
             Danh Sách Sản Phẩm Trong Đơn
           </h3>
 
           <div className="divide-y divide-slate-100">
-            {order.items.map((item) => (
+            {order.items.map((item, index) => (
               <div
                 key={item.id}
-                className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs"
+                style={{ animationDelay: `${Math.min(index * 80, 480)}ms` }}
+                className="reveal-soft py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs"
               >
                 <div className="flex items-center gap-4">
                   <img
@@ -322,7 +340,7 @@ export default function OrderDetailPage() {
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600";
                     }}
-                    className="w-16 h-16 rounded-2xl object-cover border border-slate-200 flex-shrink-0"
+                    className="w-16 h-16 rounded-2xl object-cover border border-slate-200 flex-shrink-0 transition-transform duration-300 hover:scale-105"
                   />
                   <div className="space-y-1">
                     <p className="font-bold text-slate-900 text-sm">{item.product_name_snapshot}</p>
@@ -347,7 +365,7 @@ export default function OrderDetailPage() {
                           orderId: order.id,
                         })
                       }
-                      className="px-3 py-1.5 bg-orange-50 text-shopee-orange font-bold text-xs rounded-xl hover:bg-shopee-orange hover:text-white transition flex items-center gap-1"
+                      className="px-3 py-1.5 bg-orange-50 text-shopee-orange font-bold text-xs rounded-xl hover:bg-shopee-orange hover:text-white hover:-translate-y-0.5 transition flex items-center gap-1"
                     >
                       <Star className="w-3.5 h-3.5" /> Đánh Giá
                     </button>
@@ -357,7 +375,7 @@ export default function OrderDetailPage() {
             ))}
           </div>
 
-          <div className="pt-4 border-t border-slate-100 flex flex-col items-end space-y-2 text-xs">
+          <div className="reveal-soft reveal-delay-4 pt-4 border-t border-slate-100 flex flex-col items-end space-y-2 text-xs">
             <div className="w-full sm:w-72 space-y-2">
               <div className="flex justify-between text-slate-600">
                 <span>Tổng tiền hàng:</span>
@@ -371,7 +389,7 @@ export default function OrderDetailPage() {
               </div>
               {order.discount_amount > 0 && (
                 <div className="flex justify-between text-emerald-600 font-semibold">
-                  <span>Mã giảm giá ({order.coupon_code || "Coupon"}):</span>
+                  <span>Mã giảm giá ({order.coupon_code || "chưa có mã"}):</span>
                   <span>-{formatVND(order.discount_amount)}</span>
                 </div>
               )}

@@ -94,7 +94,7 @@ export default function AdminCouponsPage() {
         <div>
           <h1 className="flex items-center gap-2 text-xl font-black text-slate-900 sm:text-2xl sm:gap-2.5">
             <Ticket className="h-5 w-5 shrink-0 text-shopee-orange sm:h-6 sm:w-6" />
-            <span>Quản Lý Mã Giảm Giá (Coupons)</span>
+            <span>Quản lý mã giảm giá</span>
           </h1>
 
           <p className="mt-1 text-[11px] leading-5 text-slate-500 sm:text-xs">
@@ -455,7 +455,7 @@ export default function AdminCouponsPage() {
                   type="submit"
                   className="w-full rounded-xl bg-shopee-orange px-6 py-2.5 text-xs font-bold text-white shadow transition hover:bg-shopee-hover active:scale-95 sm:w-auto"
                 >
-                  Tạo Mã Coupon
+                  Tạo mã giảm giá
                 </button>
               </div>
             </form>

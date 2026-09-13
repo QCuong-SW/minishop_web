@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { StorageService } from "@/lib/storage";
+import { getMiniShopChangedKey, MINISHOP_DATA_CHANGE_EVENT, StorageService } from "@/lib/storage";
 import { DashboardStats, OrderStatus } from "@/types";
 import { formatVND, formatDate } from "@/lib/utils";
 import { toast } from "sonner";
@@ -39,6 +39,19 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     fetchStats();
+
+    const refreshStats = (event: Event) => {
+      const key = getMiniShopChangedKey(event);
+      if (key.includes("products") || key.includes("orders") || key.includes("users")) {
+        fetchStats();
+      }
+    };
+    window.addEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshStats);
+    window.addEventListener("storage", refreshStats);
+    return () => {
+      window.removeEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshStats);
+      window.removeEventListener("storage", refreshStats);
+    };
   }, []);
 
   const handleQuickApprove = (orderId: number) => {
@@ -106,7 +119,7 @@ export default function AdminDashboardPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
             <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 text-shopee-orange flex-shrink-0" />
-            <span>Tổng Quan (Dashboard)</span>
+            <span>Tổng quan quản trị</span>
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
             Hiệu suất doanh thu, đơn hàng & chỉ số kinh doanh 2026

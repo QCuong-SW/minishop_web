@@ -27,7 +27,7 @@ export function Footer() {
             </div>
             <div>
               <h4 className="font-bold text-white text-sm">Giao Hàng Siêu Tốc</h4>
-              <p className="text-xs text-slate-400">Freeship từ đơn 200k</p>
+              <p className="text-xs text-slate-400">Miễn phí vận chuyển từ đơn 200k</p>
             </div>
           </div>
 
@@ -73,7 +73,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-slate-400">
-              Nền tảng thương mại điện tử trải nghiệm đa kênh — Mua sắm trực tuyến & Đặt lịch trải nghiệm sản phẩm trực tiếp tại Showroom.
+              Nền tảng thương mại điện tử trải nghiệm đa kênh — Mua sắm trực tuyến & đặt lịch trải nghiệm sản phẩm trực tiếp tại cửa hàng.
             </p>
             <div className="space-y-2 text-slate-400">
               <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export function Footer() {
             <h4 className="font-bold text-white uppercase tracking-wider text-xs">Về MiniShop</h4>
             <ul className="space-y-2 text-slate-400">
               <li><Link href="/products" className="hover:text-shopee-orange transition">Tất cả sản phẩm</Link></li>
-              <li><Link href="/appointments" className="hover:text-shopee-orange transition">Đặt hẹn Showroom</Link></li>
+              <li><Link href="/appointments" className="hover:text-shopee-orange transition">Đặt hẹn tại cửa hàng</Link></li>
               <li><Link href="/orders" className="hover:text-shopee-orange transition">Tra cứu đơn hàng</Link></li>
               <li><Link href="/wishlist" className="hover:text-shopee-orange transition">Danh sách yêu thích</Link></li>
             </ul>
@@ -116,19 +116,19 @@ export function Footer() {
           {/* Payment Methods */}
           <div className="space-y-3">
             <h4 className="font-bold text-white uppercase tracking-wider text-xs">Thanh Toán & An Toàn</h4>
-            <p className="text-slate-400">Hỗ trợ thanh toán khi nhận hàng (COD) và Chuyển khoản mô phỏng (Mock Banking).</p>
+            <p className="text-slate-400">Hỗ trợ thanh toán khi nhận hàng (COD) và chuyển khoản ngân hàng mô phỏng.</p>
             <div className="flex flex-wrap gap-2 pt-2">
               <span className="px-2.5 py-1 bg-slate-800 rounded-lg text-[10px] font-bold text-slate-300 border border-slate-700 flex items-center gap-1.5 shadow-sm">
                 <Banknote className="w-3.5 h-3.5 text-emerald-400" />
-                <span>COD Tiền Mặt</span>
+                <span>COD tiền mặt</span>
               </span>
               <span className="px-2.5 py-1 bg-slate-800 rounded-lg text-[10px] font-bold text-slate-300 border border-slate-700 flex items-center gap-1.5 shadow-sm">
                 <Building2 className="w-3.5 h-3.5 text-blue-400" />
-                <span>Mock Banking</span>
+                <span>Ngân hàng mô phỏng</span>
               </span>
               <span className="px-2.5 py-1 bg-slate-800 rounded-lg text-[10px] font-bold text-slate-300 border border-slate-700 flex items-center gap-1.5 shadow-sm">
                 <Lock className="w-3.5 h-3.5 text-amber-400" />
-                <span>SSL Secure</span>
+                <span>Bảo mật SSL</span>
               </span>
             </div>
           </div>
@@ -136,7 +136,7 @@ export function Footer() {
 
         {/* Copyright */}
         <div className="pt-8 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© 2026 MiniShop. Đồ án môn học Lập trình Web — Next.js & PHP OOP Architecture.</p>
+          <p>© 2026 MiniShop. Đồ án môn học Lập trình Web — kiến trúc Next.js & PHP OOP.</p>
           <div className="flex items-center gap-1 text-slate-400">
             <span>Thiết kế & hoàn thiện với</span>
             <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />

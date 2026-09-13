@@ -109,7 +109,7 @@ export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
             >
               <img
                 src={adminAvatar}
-                alt="Admin"
+                alt="Quản trị viên"
                 className="h-8 w-8 rounded-full border-2 border-purple-300 object-cover shadow-sm"
               />
 

@@ -405,7 +405,7 @@ export default function AdminCategoriesPage() {
                   {imageUrl && (
                     <img
                       src={imageUrl}
-                      alt="Preview"
+                      alt="Ảnh xem trước"
                       className="h-14 w-14 shrink-0 rounded-xl border border-slate-200 object-cover sm:h-10 sm:w-10"
                     />
                   )}

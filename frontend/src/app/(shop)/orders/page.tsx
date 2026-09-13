@@ -11,6 +11,7 @@ import { getOrdersApi, cancelOrderApi } from "@/features/orders/order.api";
 import { useAuth } from "@/context/AuthContext";
 import { Order, OrderStatus } from "@/types";
 import { formatVND, formatDate } from "@/lib/utils";
+import { getMiniShopChangedKey, MINISHOP_DATA_CHANGE_EVENT } from "@/lib/storage";
 import { toast } from "sonner";
 import {
   ChevronRight,
@@ -47,6 +48,19 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+
+    const refreshOrders = (event: Event) => {
+      const key = getMiniShopChangedKey(event);
+      if (key.includes("orders")) {
+        fetchOrders();
+      }
+    };
+    window.addEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshOrders);
+    window.addEventListener("storage", refreshOrders);
+    return () => {
+      window.removeEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshOrders);
+      window.removeEventListener("storage", refreshOrders);
+    };
   }, [user]);
 
   const handleCancelOrder = async (orderId: number) => {
@@ -83,8 +97,8 @@ export default function OrdersPage() {
       <div className="flex flex-col min-h-screen bg-slate-50">
         <Navbar />
         <main className="flex-1 max-w-xl mx-auto px-4 py-16 w-full flex items-center justify-center">
-          <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-xl text-center space-y-6 w-full animate-in zoom-in-95 duration-200">
-            <div className="w-20 h-20 bg-orange-50 text-shopee-orange rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-orange-100">
+          <div className="reveal-soft bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-xl text-center space-y-6 w-full">
+            <div className="cart-pulse w-20 h-20 bg-orange-50 text-shopee-orange rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-orange-100">
               <Package className="w-10 h-10 stroke-[2.2]" />
             </div>
 
@@ -128,23 +142,23 @@ export default function OrdersPage() {
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full space-y-6">
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-slate-500 reveal-up">
           <Link href="/" className="hover:text-shopee-orange">Trang chủ</Link>
           <ChevronRight className="w-3.5 h-3.5" />
           <span className="font-semibold text-slate-800">Đơn Hàng Của Tôi</span>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 reveal-up reveal-delay-1">
           <div>
             <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
-              <Package className="w-6 h-6 text-shopee-orange" />
+              <Package className="cart-pulse w-6 h-6 text-shopee-orange" />
               <span>Đơn Hàng Của Tôi</span>
             </h1>
             <p className="text-xs text-slate-500">Theo dõi tiến độ vận chuyển và lịch sử mua sắm</p>
           </div>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2 border-b border-slate-200 scrollbar-none text-xs font-bold">
+        <div className="flex gap-2 overflow-x-auto pb-2 border-b border-slate-200 scrollbar-none text-xs font-bold reveal-up reveal-delay-2">
           {[
             { id: "ALL", label: "Tất Cả" },
             { id: "PENDING", label: "Chờ Duyệt" },
@@ -157,7 +171,7 @@ export default function OrdersPage() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 rounded-xl whitespace-nowrap transition-all ${
+              className={`px-4 py-2.5 rounded-xl whitespace-nowrap transition-all hover:-translate-y-0.5 ${
                 activeTab === tab.id
                   ? "bg-shopee-orange text-white shadow-md shadow-orange-200"
                   : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
@@ -169,15 +183,16 @@ export default function OrdersPage() {
         </div>
 
         {filteredOrders.length > 0 ? (
-          <div className="space-y-6">
-            {filteredOrders.map((order) => {
+          <div className="space-y-6 reveal-up reveal-delay-3">
+            {filteredOrders.map((order, orderIndex) => {
               const statusInfo = statusConfig[order.status] || statusConfig.PENDING;
               const StatusIcon = statusInfo.icon;
 
               return (
                 <div
                   key={order.id}
-                  className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4 hover:shadow-md transition"
+                  style={{ animationDelay: `${Math.min(orderIndex * 90, 540)}ms` }}
+                  className="reveal-soft animated-card bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4 hover:shadow-md transition"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 text-xs">
                     <div className="flex items-center gap-3">
@@ -197,10 +212,11 @@ export default function OrdersPage() {
                   </div>
 
                   <div className="divide-y divide-slate-100">
-                    {order.items.map((item) => (
+                    {order.items.map((item, itemIndex) => (
                       <div
                         key={item.id}
-                        className="py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs"
+                        style={{ animationDelay: `${Math.min(itemIndex * 70, 350)}ms` }}
+                        className="reveal-soft py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs"
                       >
                         <div className="flex items-center gap-3.5">
                           <img
@@ -209,7 +225,7 @@ export default function OrdersPage() {
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600";
                             }}
-                            className="w-14 h-14 rounded-2xl object-cover border border-slate-200 flex-shrink-0"
+                            className="w-14 h-14 rounded-2xl object-cover border border-slate-200 flex-shrink-0 transition-transform duration-300 hover:scale-105"
                           />
                           <div className="space-y-0.5">
                             <p className="font-bold text-slate-900 text-sm line-clamp-1">
@@ -236,7 +252,7 @@ export default function OrdersPage() {
                                     orderId: order.id,
                                 })
                               }
-                              className="px-3 py-1.5 bg-orange-50 text-shopee-orange font-bold text-xs rounded-xl hover:bg-shopee-orange hover:text-white transition flex items-center gap-1"
+                              className="px-3 py-1.5 bg-orange-50 text-shopee-orange font-bold text-xs rounded-xl hover:bg-shopee-orange hover:text-white hover:-translate-y-0.5 transition flex items-center gap-1"
                             >
                               <Star className="w-3.5 h-3.5" /> Đánh Giá
                             </button>
@@ -255,7 +271,7 @@ export default function OrdersPage() {
                       <span className="text-slate-300 mx-2">|</span>
                       <span>Trạng thái thanh toán: </span>
                       <strong className={order.payment_status === "PAID" ? "text-emerald-600" : "text-amber-600"}>
-                        {order.payment_status === "PAID" ? "Đã Thanh Toán" : "Chưa Thanh Toán"}
+                        {order.payment_status === "PAID" ? "Đã thanh toán" : "Chưa thanh toán"}
                       </strong>
                     </div>
 
@@ -272,7 +288,7 @@ export default function OrdersPage() {
                           <button
                             type="button"
                             onClick={() => setCancellingOrderId(order.id)}
-                            className="px-4 py-2 rounded-xl border border-rose-200 text-rose-600 font-bold text-xs hover:bg-rose-50 transition"
+                            className="px-4 py-2 rounded-xl border border-rose-200 text-rose-600 font-bold text-xs hover:bg-rose-50 hover:-translate-y-0.5 transition"
                           >
                             Hủy Đơn
                           </button>
@@ -280,7 +296,7 @@ export default function OrdersPage() {
 
                         <Link
                           href={`/orders/${order.id}`}
-                          className="px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition flex items-center gap-1.5"
+                          className="px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 hover:-translate-y-0.5 transition flex items-center gap-1.5"
                         >
                           <Eye className="w-3.5 h-3.5" /> Chi Tiết
                         </Link>
@@ -292,12 +308,14 @@ export default function OrdersPage() {
             })}
           </div>
         ) : (
-          <EmptyState
-            title="Không có đơn hàng nào"
-            description="Bạn chưa có đơn hàng nào ở trạng thái này. Hãy dạo quanh cửa hàng để tìm món đồ ưng ý nhé!"
-            actionText="Khám phá sản phẩm ngay"
-            actionHref="/products"
-          />
+          <div className="reveal-soft reveal-delay-3">
+            <EmptyState
+              title="Không có đơn hàng nào"
+              description="Bạn chưa có đơn hàng nào ở trạng thái này. Hãy dạo quanh cửa hàng để tìm món đồ ưng ý nhé!"
+              actionText="Khám phá sản phẩm ngay"
+              actionHref="/products"
+            />
+          </div>
         )}
       </main>
 
