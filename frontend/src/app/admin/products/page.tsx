@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { StorageService } from "@/lib/storage";
+import { getMiniShopChangedKey, MINISHOP_DATA_CHANGE_EVENT, StorageService } from "@/lib/storage";
 import { Product, Category } from "@/types";
 import { formatVND, slugify } from "@/lib/utils";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
@@ -52,6 +52,19 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     fetchProducts();
+
+    const refreshProducts = (event: Event) => {
+      const key = getMiniShopChangedKey(event);
+      if (key.includes("products") || key.includes("categories") || key.includes("reviews")) {
+        fetchProducts();
+      }
+    };
+    window.addEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshProducts);
+    window.addEventListener("storage", refreshProducts);
+    return () => {
+      window.removeEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshProducts);
+      window.removeEventListener("storage", refreshProducts);
+    };
   }, [keyword, categoryFilter]);
 
   const handleOpenAdd = () => {
@@ -626,7 +639,7 @@ export default function AdminProductsPage() {
                   {imageUrl && (
                     <img
                       src={imageUrl}
-                      alt="Preview"
+                      alt="Ảnh xem trước"
                       className="h-16 w-16 shrink-0 rounded-xl border border-slate-200 object-cover sm:h-10 sm:w-10"
                     />
                   )}

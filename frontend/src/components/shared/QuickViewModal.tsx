@@ -86,7 +86,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                       activeImage === img ? "border-shopee-orange shadow-sm" : "border-slate-200 opacity-70 hover:opacity-100"
                     }`}
                   >
-                    <img src={img} alt="thumb" className="w-full h-full object-cover" />
+                    <img src={img} alt="Ảnh thu nhỏ" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

@@ -100,15 +100,15 @@ export default function AppointmentsPage() {
       <Navbar />
 
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full space-y-8">
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-slate-500 reveal-up">
           <Link href="/" className="hover:text-shopee-orange">Trang chủ</Link>
           <ChevronRight className="w-3.5 h-3.5" />
           <span className="font-semibold text-slate-800">Đặt Lịch Hẹn Showroom</span>
         </div>
 
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-6 md:p-10 shadow-xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="light-sweep reveal-up reveal-delay-1 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-6 md:p-10 shadow-xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-3">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+            <span className="float-badge text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
               <Award className="w-4 h-4" /> Trải Nghiệm Showroom 1-1 Miễn Phí
             </span>
             <h1 className="text-2xl md:text-3xl font-black">
@@ -119,7 +119,7 @@ export default function AppointmentsPage() {
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-xs space-y-2 flex-shrink-0">
+          <div className="reveal-soft reveal-delay-2 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-xs space-y-2 flex-shrink-0">
             <div className="flex items-center gap-2 text-amber-300 font-bold">
               <MapPin className="w-4 h-4" />
               <span>Showroom Flagship</span>
@@ -129,11 +129,11 @@ export default function AppointmentsPage() {
           </div>
         </div>
 
-        <div className="flex gap-2 border-b border-slate-200 pb-2 text-xs font-bold">
+        <div className="flex gap-2 border-b border-slate-200 pb-2 text-xs font-bold reveal-up reveal-delay-2">
           <button
             type="button"
             onClick={() => setActiveTab("book")}
-            className={`px-5 py-2.5 rounded-xl transition ${
+            className={`px-5 py-2.5 rounded-xl transition hover:-translate-y-0.5 ${
               activeTab === "book"
                 ? "bg-shopee-orange text-white shadow-md shadow-orange-200"
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
@@ -144,7 +144,7 @@ export default function AppointmentsPage() {
           <button
             type="button"
             onClick={() => setActiveTab("history")}
-            className={`px-5 py-2.5 rounded-xl transition flex items-center gap-2 ${
+            className={`px-5 py-2.5 rounded-xl transition hover:-translate-y-0.5 flex items-center gap-2 ${
               activeTab === "history"
                 ? "bg-shopee-orange text-white shadow-md shadow-orange-200"
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
@@ -158,13 +158,13 @@ export default function AppointmentsPage() {
         </div>
 
         {activeTab === "book" ? (
-          <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
+          <form onSubmit={handleSubmit} className="reveal-soft reveal-delay-3 bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
             <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
               Thông Tin Đặt Lịch Hẹn
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-              <div className="space-y-1.5">
+              <div className="reveal-soft space-y-1.5">
                 <label className="font-bold text-slate-700 block">
                   Dịch vụ bạn muốn trải nghiệm (*)
                 </label>
@@ -180,7 +180,7 @@ export default function AppointmentsPage() {
                 </select>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="reveal-soft reveal-delay-1 space-y-1.5">
                 <label className="font-bold text-slate-700 block">
                   Số lượng người đi cùng (*)
                 </label>
@@ -190,7 +190,7 @@ export default function AppointmentsPage() {
                       key={num}
                       type="button"
                       onClick={() => setGuestCount(num)}
-                      className={`flex-1 py-2.5 rounded-xl font-bold border transition ${
+                      className={`flex-1 py-2.5 rounded-xl font-bold border transition hover:-translate-y-0.5 ${
                         guestCount === num
                           ? "border-shopee-orange bg-orange-50 text-shopee-orange"
                           : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
@@ -202,7 +202,7 @@ export default function AppointmentsPage() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="reveal-soft reveal-delay-2 space-y-1.5">
                 <label className="font-bold text-slate-700 block">
                   Chọn ngày hẹn (*)
                 </label>
@@ -215,7 +215,7 @@ export default function AppointmentsPage() {
                 />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="reveal-soft reveal-delay-3 space-y-1.5">
                 <label className="font-bold text-slate-700 block">
                   Khung giờ đón tiếp (*)
                 </label>
@@ -232,7 +232,7 @@ export default function AppointmentsPage() {
                 </select>
               </div>
 
-              <div className="md:col-span-2 space-y-1.5">
+              <div className="reveal-soft reveal-delay-4 md:col-span-2 space-y-1.5">
                 <label className="font-bold text-slate-700 block">
                   Ghi chú yêu cầu đặc biệt (Tùy chọn)
                 </label>
@@ -253,21 +253,22 @@ export default function AppointmentsPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-8 py-3.5 bg-gradient-to-r from-shopee-orange to-amber-500 text-white font-bold text-xs rounded-2xl shadow-lg hover:shadow-orange-500/30 transition active:scale-95 disabled:opacity-50"
+                className="px-8 py-3.5 bg-gradient-to-r from-shopee-orange to-amber-500 text-white font-bold text-xs rounded-2xl shadow-lg hover:shadow-orange-500/30 hover:-translate-y-0.5 transition active:scale-95 disabled:opacity-50"
               >
                 {isSubmitting ? "Đang Gửi Lịch Hẹn..." : "XÁC NHẬN ĐẶT HẸN"}
               </button>
             </div>
           </form>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 reveal-up reveal-delay-3">
             {appointments.length > 0 ? (
-              appointments.map((app) => {
+              appointments.map((app, index) => {
                 const status = statusMap[app.status] || statusMap.PENDING;
                 return (
                   <div
                     key={app.id}
-                    className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4 hover:shadow-md transition"
+                    style={{ animationDelay: `${Math.min(index * 80, 480)}ms` }}
+                    className="reveal-soft animated-card bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4 hover:shadow-md transition"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3 text-xs">
                       <div className="flex items-center gap-2">
@@ -304,7 +305,7 @@ export default function AppointmentsPage() {
                     </div>
 
                     {app.note && (
-                      <p className="p-3 bg-slate-50 rounded-xl text-xs text-slate-500 italic border border-slate-100">
+                      <p className="reveal-soft p-3 bg-slate-50 rounded-xl text-xs text-slate-500 italic border border-slate-100">
                         Ghi chú: &quot;{app.note}&quot;
                       </p>
                     )}
@@ -312,13 +313,15 @@ export default function AppointmentsPage() {
                 );
               })
             ) : (
-              <EmptyState
-                icon={Calendar}
-                title="Chưa có lịch hẹn nào"
-                description="Bạn chưa đặt lịch hẹn showroom nào. Hãy đăng ký trải nghiệm ngay hôm nay!"
-                actionText="Đặt lịch hẹn ngay"
-                onAction={() => setActiveTab("book")}
-              />
+              <div className="reveal-soft">
+                <EmptyState
+                  icon={Calendar}
+                  title="Chưa có lịch hẹn nào"
+                  description="Bạn chưa đặt lịch hẹn showroom nào. Hãy đăng ký trải nghiệm ngay hôm nay!"
+                  actionText="Đặt lịch hẹn ngay"
+                  onAction={() => setActiveTab("book")}
+                />
+              </div>
             )}
           </div>
         )}
