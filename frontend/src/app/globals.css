@@ -183,3 +183,95 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Smooth commerce reveal animations */
+@keyframes fadeUpIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes softScaleIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes floatBadge {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes cartPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(238, 77, 45, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 0 9px rgba(238, 77, 45, 0);
+  }
+}
+
+.reveal-up {
+  animation: fadeUpIn 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reveal-soft {
+  animation: softScaleIn 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reveal-delay-1 {
+  animation-delay: 80ms;
+}
+
+.reveal-delay-2 {
+  animation-delay: 160ms;
+}
+
+.reveal-delay-3 {
+  animation-delay: 240ms;
+}
+
+.reveal-delay-4 {
+  animation-delay: 320ms;
+}
+
+.float-badge {
+  animation: floatBadge 3.2s ease-in-out infinite;
+}
+
+.cart-pulse {
+  animation: cartPulse 2.4s ease-in-out infinite;
+}
+
+.animated-card {
+  will-change: transform, opacity;
+}
+
+.animated-card:hover {
+  transform: translateY(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

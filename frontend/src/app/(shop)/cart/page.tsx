@@ -70,15 +70,15 @@ export default function CartPage() {
 
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full space-y-6">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-slate-500 reveal-up">
           <Link href="/" className="hover:text-shopee-orange">Trang chủ</Link>
           <ChevronRight className="w-3.5 h-3.5" />
           <span className="font-semibold text-slate-800">Giỏ Hàng Của Bạn</span>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between reveal-up reveal-delay-1">
           <div className="flex items-center gap-2.5">
-            <div className="p-2.5 bg-orange-50 text-shopee-orange rounded-2xl">
+            <div className="cart-pulse p-2.5 bg-orange-50 text-shopee-orange rounded-2xl">
               <ShoppingBag className="w-6 h-6" />
             </div>
             <div>
@@ -101,11 +101,11 @@ export default function CartPage() {
         </div>
 
         {cart.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start reveal-up reveal-delay-2">
             {/* Left 2 Cols: Cart Table */}
             <div className="lg:col-span-2 space-y-4">
               {/* Select All Bar */}
-              <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between text-xs font-bold text-slate-700">
+              <div className="reveal-soft bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between text-xs font-bold text-slate-700">
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -120,7 +120,7 @@ export default function CartPage() {
 
               {/* Items List */}
               <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm divide-y divide-slate-100 overflow-hidden">
-                {cart.map((item) => {
+                {cart.map((item, index) => {
                   const liveProd = StorageService.getProductById(item.product_id);
                   const isItemOutOfStock = !liveProd || liveProd.stock <= 0 || liveProd.status === "INACTIVE";
                   const isExceedingStock = liveProd && liveProd.stock > 0 && item.quantity > liveProd.stock;
@@ -128,7 +128,8 @@ export default function CartPage() {
                   return (
                     <div
                       key={item.product_id}
-                      className={`p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition ${
+                      style={{ animationDelay: `${Math.min(index * 70, 420)}ms` }}
+                      className={`reveal-soft p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition ${
                         isItemOutOfStock ? "bg-rose-50/40" : "hover:bg-slate-50/50"
                       }`}
                     >
@@ -142,7 +143,7 @@ export default function CartPage() {
 
                         <Link
                           href={`/products/${item.slug}`}
-                          className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0 ${
+                          className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0 transition-transform duration-300 hover:scale-105 ${
                             isItemOutOfStock ? "grayscale-[40%]" : ""
                           }`}
                         >
@@ -208,7 +209,7 @@ export default function CartPage() {
                         <button
                           type="button"
                           onClick={() => setItemToDelete(item.product_id)}
-                          className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition"
+                          className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:-translate-y-0.5 rounded-xl transition"
                           title="Xóa món này"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -221,7 +222,7 @@ export default function CartPage() {
             </div>
 
             {/* Right 1 Col: Sticky Order Summary */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6 sticky top-24">
+            <div className="reveal-soft reveal-delay-3 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6 sticky top-24">
               <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
                 Tóm Tắt Đơn Hàng
               </h3>
@@ -252,14 +253,14 @@ export default function CartPage() {
                 </div>
 
                 {hasOutOfStockSelected ? (
-                  <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 text-[11px] text-rose-800 flex items-center gap-2">
+                  <div className="reveal-soft p-3 bg-rose-50 rounded-xl border border-rose-200 text-[11px] text-rose-800 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
                     <span>Có sản phẩm đã hết hàng. Vui lòng bỏ chọn hoặc xóa món đó để tiếp tục!</span>
                   </div>
                 ) : (
-                  <div className="p-3 bg-orange-50/60 rounded-xl border border-orange-100 text-[11px] text-orange-800 flex items-center gap-2">
+                  <div className="reveal-soft p-3 bg-orange-50/60 rounded-xl border border-orange-100 text-[11px] text-orange-800 flex items-center gap-2">
                     <Ticket className="w-4 h-4 text-shopee-orange flex-shrink-0" />
-                    <span>Mã giảm giá (Coupon) sẽ được áp dụng tại bước Thanh toán!</span>
+                    <span>Mã giảm giá sẽ được áp dụng tại bước thanh toán!</span>
                   </div>
                 )}
               </div>
@@ -268,7 +269,7 @@ export default function CartPage() {
                 type="button"
                 onClick={handleCheckout}
                 disabled={!isAnySelected || hasOutOfStockSelected}
-                className={`w-full py-3.5 px-4 font-bold text-sm rounded-2xl shadow-lg flex items-center justify-center gap-2 transition active:scale-95 ${
+                className={`w-full py-3.5 px-4 font-bold text-sm rounded-2xl shadow-lg flex items-center justify-center gap-2 transition hover:-translate-y-0.5 active:scale-95 ${
                   !isAnySelected || hasOutOfStockSelected
                     ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
                     : "bg-gradient-to-r from-shopee-orange to-amber-500 text-white shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30"
@@ -289,12 +290,14 @@ export default function CartPage() {
             </div>
           </div>
         ) : (
-          <EmptyState
-            title="Giỏ hàng của bạn đang trống"
-            description="Bạn chưa chọn món đồ nào vào giỏ hàng. Hãy khám phá ngay các sản phẩm hot đang giảm giá hôm nay nhé!"
-            actionText="Mua sắm ngay bây giờ"
-            actionHref="/products"
-          />
+          <div className="reveal-soft reveal-delay-2">
+            <EmptyState
+              title="Giỏ hàng của bạn đang trống"
+              description="Bạn chưa chọn món đồ nào vào giỏ hàng. Hãy khám phá ngay các sản phẩm hot đang giảm giá hôm nay nhé!"
+              actionText="Mua sắm ngay bây giờ"
+              actionHref="/products"
+            />
+          </div>
         )}
       </main>
 

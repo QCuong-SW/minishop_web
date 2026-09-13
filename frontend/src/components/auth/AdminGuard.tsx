@@ -43,14 +43,14 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
             <p className="text-xs text-slate-400 leading-relaxed">
               Tài khoản của bạn (
               {user ? `${user.name} (${user.role})` : "Khách chưa đăng nhập"})
-              không có quyền truy cập vào Phân hệ Admin Portal.
+              không có quyền truy cập vào phân hệ quản trị.
             </p>
           </div>
 
           <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 text-left text-xs space-y-2">
             <div className="flex items-center gap-2 text-slate-300 font-bold">
               <Lock className="w-3.5 h-3.5 text-amber-400" />
-              <span>Yêu cầu đăng nhập Admin:</span>
+              <span>Yêu cầu đăng nhập quản trị viên:</span>
             </div>
 
             <p className="text-slate-400 text-[11px]">

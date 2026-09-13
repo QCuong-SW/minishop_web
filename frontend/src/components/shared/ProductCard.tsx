@@ -63,7 +63,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <>
-      <div className={`group relative bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-orange-200 transition-all duration-300 flex flex-col justify-between overflow-hidden ${isOutOfStock ? "opacity-85" : ""}`}>
+      <div className={`group animated-card reveal-soft relative bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-orange-200 transition-all duration-300 flex flex-col justify-between overflow-hidden ${isOutOfStock ? "opacity-85" : ""}`}>
         {/* Product Image Container */}
         <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
           <Link
@@ -104,7 +104,7 @@ export function ProductCard({ product }: ProductCardProps) {
             aria-label="Yêu thích"
             className="absolute top-2.5 right-2.5 p-2 rounded-full bg-white/90 backdrop-blur-md shadow-sm hover:bg-white text-slate-500 hover:text-rose-500 transition-all active:scale-90 cursor-pointer"
           >
-            <Heart className={`w-4 h-4 ${isFav ? "fill-rose-500 text-rose-500" : ""}`} />
+            <Heart className={`w-4 h-4 transition-transform duration-200 ${isFav ? "fill-rose-500 text-rose-500 scale-110" : ""}`} />
           </button>
 
           {/* Quick View Button on Hover */}
@@ -168,7 +168,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 type="button"
                 onClick={handleAddToCartClick}
                 disabled={isOutOfStock}
-                className={`p-2 sm:p-2.5 rounded-xl transition-all shadow-sm flex-shrink-0 cursor-pointer ${
+                className={`p-2 sm:p-2.5 rounded-xl transition-all shadow-sm flex-shrink-0 cursor-pointer hover:-translate-y-0.5 ${
                   isOutOfStock
                     ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                     : "bg-orange-50 text-shopee-orange hover:bg-shopee-orange hover:text-white active:scale-90"

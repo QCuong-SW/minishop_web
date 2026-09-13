@@ -17,7 +17,6 @@ import {
   UserCheck,
   Zap,
   ArrowRight,
-  ShoppingCart,
   Gift,
   CheckCircle2,
   Sparkles,
@@ -139,7 +138,7 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
             <div className="w-1/2 h-full relative overflow-hidden flex-shrink-0">
               <img
                 src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1000"
-                alt="Fashion Lifestyle Login"
+                alt="Không gian thời trang"
                 className="w-full h-full object-cover object-center opacity-45 scale-105 transition-transform duration-1000"
               />
               <div className="absolute inset-0 bg-gradient-to-br from-orange-600/40 via-slate-950/60 to-purple-900/50" />
@@ -149,7 +148,7 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
             <div className="w-1/2 h-full relative overflow-hidden flex-shrink-0">
               <img
                 src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1000"
-                alt="Shopping Mall Register"
+                alt="Không gian mua sắm"
                 className="w-full h-full object-cover object-center opacity-45 scale-105 transition-transform duration-1000"
               />
               <div className="absolute inset-0 bg-gradient-to-br from-amber-600/40 via-slate-950/60 to-rose-900/50" />
@@ -160,13 +159,12 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
 
           {/* Top Brand Tag */}
           <div className="relative z-10 space-y-1.5">
-            <Link href="/" className="inline-flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-shopee-orange to-amber-500 flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
-                <ShoppingCart className="w-4 h-4 text-white stroke-[2.5]" />
-              </div>
-              <span className="text-xl font-black text-white tracking-tight">
-                Mini<span className="text-amber-400">Shop</span>
-              </span>
+            <Link href="/" className="group inline-flex h-12 w-44 items-center">
+              <img
+                src="/minishop-logo.png"
+                alt="MiniShop"
+                className="h-11 w-full object-contain object-left brightness-0 invert transition-transform duration-300 group-hover:scale-[1.03]"
+              />
             </Link>
             <p className="text-[11px] text-slate-300">
               Nền tảng mua sắm thời trang & thương mại điện tử 2026
@@ -189,14 +187,14 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
                     <span>Trải Nghiệm Chuẩn Hiện Đại</span>
                   </div>
                   <p className="text-[11px] text-slate-200 leading-relaxed">
-                    Tích hợp phân quyền thông minh, hệ thống thanh toán tức thì và quản lý kho hàng chuẩn Transaction.
+                    Tích hợp phân quyền thông minh, thanh toán tức thì và quản lý kho hàng nhất quán.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2.5 bg-black/30 backdrop-blur-md p-2.5 rounded-2xl border border-white/10">
                   <img
                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"
-                    alt="User"
+                    alt="Khách hàng"
                     className="w-8 h-8 rounded-full object-cover border border-amber-400"
                   />
                   <div className="text-left text-xs">
@@ -230,7 +228,7 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                    <span>Đặt lịch hẹn thử đồ và tư vấn Showroom</span>
+                    <span>Đặt lịch hẹn thử đồ và tư vấn tại cửa hàng</span>
                   </div>
                 </div>
               </div>
@@ -239,7 +237,7 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
 
           {/* Footer Note */}
           <div className="relative z-10 text-[10px] text-slate-400 border-t border-white/10 pt-3 flex items-center justify-between">
-            <span>© 2026 MiniShop Platform</span>
+            <span>© 2026 Nền tảng MiniShop</span>
             <span className="text-amber-400 font-semibold flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3 text-emerald-400" /> 100% Bảo mật SSL
             </span>

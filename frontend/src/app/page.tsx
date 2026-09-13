@@ -23,6 +23,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ProductCard } from "@/components/shared/ProductCard";
 import { getCategories, getProducts } from "@/features/products/product.api";
 import { Product, Category } from "@/types";
+import { getMiniShopChangedKey, MINISHOP_DATA_CHANGE_EVENT } from "@/lib/storage";
 
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -51,6 +52,15 @@ export default function HomePage() {
     }
     loadData();
 
+    const refreshHomeData = (event: Event) => {
+      const key = getMiniShopChangedKey(event);
+      if (key.includes("products") || key.includes("categories") || key.includes("reviews")) {
+        loadData();
+      }
+    };
+    window.addEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshHomeData);
+    window.addEventListener("storage", refreshHomeData);
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev.seconds > 0) {
@@ -64,7 +74,11 @@ export default function HomePage() {
       });
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshHomeData);
+      window.removeEventListener("storage", refreshHomeData);
+    };
   }, []);
 
   // Filter products by tab
@@ -93,12 +107,12 @@ export default function HomePage() {
 
       <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 w-full space-y-8 sm:space-y-10">
         {/* Hero Banner Slider / Section */}
-        <section className="relative hero-glow-container light-sweep rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-r from-orange-600 via-shopee-orange to-amber-500 text-white shadow-2xl p-5 sm:p-8 md:p-14 border border-orange-300/40">
+        <section className="relative hero-glow-container light-sweep reveal-up rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-r from-orange-600 via-shopee-orange to-amber-500 text-white shadow-2xl p-5 sm:p-8 md:p-14 border border-orange-300/40">
           <div className="absolute -right-12 -bottom-12 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute right-1/4 -top-12 w-64 h-64 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl space-y-3.5 sm:space-y-5">
-            <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide uppercase">
+            <span className="float-badge inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold tracking-wide uppercase">
               <Flame className="w-3.5 h-3.5" /> Siêu Khuyến Mãi 2026
             </span>
 
@@ -130,7 +144,7 @@ export default function HomePage() {
         </section>
 
         {/* Value Propositions Marquee Conveyor Belt */}
-        <section className="relative overflow-hidden py-1">
+        <section className="relative overflow-hidden py-1 reveal-up reveal-delay-1">
           {/* Gradient Masks for smooth edge fading */}
           <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
@@ -143,7 +157,7 @@ export default function HomePage() {
                     <Truck className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800 text-sm">Freeship Toàn Quốc</h3>
+                    <h3 className="font-bold text-slate-800 text-sm">Miễn Phí Vận Chuyển Toàn Quốc</h3>
                     <p className="text-xs text-slate-500">Đơn hàng từ 200.000 đ</p>
                   </div>
                 </div>
@@ -183,7 +197,7 @@ export default function HomePage() {
         </section>
 
         {/* Featured Categories */}
-        <section className="space-y-4">
+        <section className="space-y-4 reveal-up reveal-delay-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Layers className="w-5 h-5 text-shopee-orange" />
@@ -202,7 +216,7 @@ export default function HomePage() {
               <Link
                 key={cat.id}
                 href={`/products?category_id=${cat.id}`}
-                className="group bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-orange-200 transition-all flex flex-col items-center text-center space-y-3"
+                className="group animated-card reveal-soft bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-orange-200 transition-all flex flex-col items-center text-center space-y-3"
               >
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-slate-100 p-1 border-2 border-orange-100 group-hover:scale-105 transition-transform">
                   <img
@@ -225,10 +239,10 @@ export default function HomePage() {
         </section>
 
         {/* Flash Deals */}
-        <section className="light-sweep bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-rose-500/10 rounded-3xl p-6 md:p-8 border border-orange-200/80 shadow-sm space-y-6">
+        <section className="light-sweep reveal-up reveal-delay-3 bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-rose-500/10 rounded-3xl p-6 md:p-8 border border-orange-200/80 shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-shopee-orange text-white rounded-xl shadow-md">
+              <div className="cart-pulse p-2.5 bg-shopee-orange text-white rounded-xl shadow-md">
                 <Zap className="w-6 h-6 fill-white" />
               </div>
               <div>
@@ -266,7 +280,7 @@ export default function HomePage() {
         </section>
 
         {/* Product Feed */}
-        <section className="space-y-6">
+        <section className="space-y-6 reveal-up reveal-delay-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-shopee-orange" />
@@ -341,7 +355,7 @@ export default function HomePage() {
         </section>
 
         {/* Showroom Experience Banner */}
-        <section className="light-sweep bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-8 md:p-12 shadow-xl flex flex-col md:flex-row items-center justify-between gap-8 border border-indigo-500/30">
+        <section className="light-sweep reveal-up bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-8 md:p-12 shadow-xl flex flex-col md:flex-row items-center justify-between gap-8 border border-indigo-500/30">
           <div className="space-y-4 max-w-xl">
             <span className="text-amber-400 text-xs font-bold tracking-widest uppercase flex items-center gap-1.5">
               <Award className="w-4 h-4" /> Dịch Vụ Độc Quyền Tại MiniShop

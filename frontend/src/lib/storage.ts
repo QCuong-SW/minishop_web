@@ -39,6 +39,14 @@ const KEYS = {
 
 const ADMIN_USER_ID = 1;
 const ADMIN_EMAIL = "admin@minishop.vn";
+export const MINISHOP_DATA_CHANGE_EVENT = "minishop:data-change";
+
+export function getMiniShopChangedKey(event: Event): string {
+  if (event.type === "storage") {
+    return (event as StorageEvent).key || "";
+  }
+  return (event as CustomEvent<{ key?: string }>).detail?.key || "";
+}
 
 function isSystemAdmin(user: User | null | undefined): boolean {
   return !!user && user.id === ADMIN_USER_ID && user.email === ADMIN_EMAIL && user.role === "ADMIN";
@@ -72,6 +80,11 @@ function setItem<T>(key: string, value: T): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    window.dispatchEvent(
+      new CustomEvent(MINISHOP_DATA_CHANGE_EVENT, {
+        detail: { key },
+      })
+    );
   } catch (err) {
     console.error(`Error saving to localStorage key ${key}:`, err);
   }
@@ -599,6 +612,7 @@ export const StorageService = {
 
   getOrderById(id: number | string): Order | null {
     const currentUser = this.getCurrentUser();
+    if (!currentUser) return null;
     const orders = this.isSystemAdmin(currentUser) ? this.getOrders() : this.getOrders(currentUser?.id);
     return (
       orders.find((o) => o.id.toString() === id.toString() || o.order_code === id.toString()) ||
