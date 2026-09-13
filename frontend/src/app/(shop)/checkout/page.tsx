@@ -455,14 +455,14 @@ export default function CheckoutPage() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-slate-900">
-                          Chuyển Khoản Ngân Hàng (Mock Banking)
+                          Chuyển khoản ngân hàng mô phỏng
                         </span>
                         <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
                           Khuyên dùng
                         </span>
                       </div>
                       <p className="text-slate-500 leading-relaxed">
-                        Thanh toán mô phỏng thành công ngay lập tức! Đơn hàng được tự động xác nhận và đánh dấu Đã Thanh Toán (PAID).
+                        Thanh toán mô phỏng thành công ngay lập tức! Đơn hàng được tự động xác nhận và đánh dấu đã thanh toán.
                       </p>
                     </div>
                   </label>
@@ -532,7 +532,7 @@ export default function CheckoutPage() {
                 <div className="pt-4 border-t border-slate-100 space-y-3">
                   <div className="flex items-center gap-2">
                     <Ticket className="w-4 h-4 text-shopee-orange" />
-                    <span className="text-xs font-bold text-slate-800">Mã Giảm Giá (Coupon)</span>
+                    <span className="text-xs font-bold text-slate-800">Mã giảm giá</span>
                   </div>
 
                   {appliedCoupon ? (

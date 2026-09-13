@@ -16,6 +16,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
 import { Product, Review } from "@/types";
 import { formatVND, calculateDiscountPercent, formatDate } from "@/lib/utils";
+import { getMiniShopChangedKey, MINISHOP_DATA_CHANGE_EVENT, StorageService } from "@/lib/storage";
 import {
   ShoppingCart,
   Zap,
@@ -26,8 +27,6 @@ import {
   RotateCcw,
   Calendar,
   MessageSquare,
-  Package,
-  ArrowRight,
 } from "lucide-react";
 
 export default function ProductDetailPage() {
@@ -37,7 +36,7 @@ export default function ProductDetailPage() {
 
   const { addToCart } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
-  const { user } = useAuth();
+  const { requireCustomerAuth } = useAuth();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -48,10 +47,7 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState<"desc" | "specs" | "policy">("desc");
 
   useEffect(() => {
-    if (!user || user.role !== "USER") {
-      setLoading(false);
-      return;
-    }
+    StorageService.init();
 
     let isCancelled = false;
     setLoading(true);
@@ -81,56 +77,26 @@ export default function ProductDetailPage() {
 
     loadProductDetail();
 
+    const refreshProductDetail = (event: Event) => {
+      const key = getMiniShopChangedKey(event);
+      if (key.includes("products") || key.includes("reviews")) {
+        loadProductDetail();
+      }
+    };
+    const refreshOnFocus = () => loadProductDetail();
+    window.addEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshProductDetail);
+    window.addEventListener("storage", refreshProductDetail);
+    window.addEventListener("focus", refreshOnFocus);
+    document.addEventListener("visibilitychange", refreshOnFocus);
+
     return () => {
       isCancelled = true;
+      window.removeEventListener(MINISHOP_DATA_CHANGE_EVENT, refreshProductDetail);
+      window.removeEventListener("storage", refreshProductDetail);
+      window.removeEventListener("focus", refreshOnFocus);
+      document.removeEventListener("visibilitychange", refreshOnFocus);
     };
-  }, [slug, user]);
-
-  if (!user || user.role !== "USER") {
-    return (
-      <div className="flex flex-col min-h-screen bg-slate-50">
-        <Navbar />
-        <main className="flex-1 max-w-xl mx-auto px-4 py-16 w-full flex items-center justify-center">
-          <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-xl text-center space-y-6 w-full animate-in zoom-in-95 duration-200">
-            <div className="w-20 h-20 bg-orange-50 text-shopee-orange rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-orange-100">
-              <Package className="w-10 h-10 stroke-[2.2]" />
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-[11px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full">
-                Yêu Cầu Đăng Nhập
-              </span>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                Chi Tiết Sản Phẩm
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
-                {user?.role === "ADMIN"
-                  ? "Bạn đang duyệt cửa hàng ở chế độ Quản Trị Viên (Khách vãng lai). Vui lòng đăng nhập bằng tài khoản Khách Hàng để xem chi tiết sản phẩm và đặt mua!"
-                  : "Vui lòng đăng nhập tài khoản Khách Hàng để xem ảnh chất lượng cao, chọn size/màu sắc và thêm vào giỏ hàng."}
-              </p>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              <Link
-                href={`/login?redirect=/products/${slug}`}
-                className="w-full py-3.5 px-6 bg-gradient-to-r from-shopee-orange to-amber-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/40 transition active:scale-95 flex items-center justify-center gap-2"
-              >
-                <span>🔐 Đăng Nhập Để Xem Chi Tiết</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/products"
-                className="w-full py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition active:scale-95 flex items-center justify-center gap-2"
-              >
-                <span>🛍️ Danh Sách Sản Phẩm</span>
-              </Link>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  }, [slug]);
 
   if (loading) {
     return (
@@ -166,12 +132,16 @@ export default function ProductDetailPage() {
   const isFav = isWishlisted(product.id);
 
   const handleAddToCart = () => {
-    addToCart(product.id, quantity);
+    if (requireCustomerAuth("thêm sản phẩm vào giỏ hàng", `/products/${product.slug}`)) {
+      addToCart(product.id, quantity);
+    }
   };
 
   const handleBuyNow = () => {
-    addToCart(product.id, quantity);
-    router.push("/checkout");
+    if (requireCustomerAuth("mua sản phẩm", `/products/${product.slug}`)) {
+      addToCart(product.id, quantity);
+      router.push("/checkout");
+    }
   };
 
   return (
@@ -226,7 +196,7 @@ export default function ProductDetailPage() {
                   >
                     <img
                       src={img}
-                      alt="thumbnail"
+                      alt="Ảnh thu nhỏ"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600";
                       }}
@@ -337,7 +307,11 @@ export default function ProductDetailPage() {
               <div className="flex items-center justify-between pt-1">
                 <button
                   type="button"
-                  onClick={() => toggleWishlist(product.id)}
+                  onClick={() => {
+                    if (requireCustomerAuth("lưu sản phẩm vào danh sách yêu thích", `/products/${product.slug}`)) {
+                      toggleWishlist(product.id);
+                    }
+                  }}
                   className={`flex items-center gap-2 text-xs font-bold transition px-3 py-1.5 rounded-xl ${
                     isFav
                       ? "text-rose-500 bg-rose-50"
@@ -352,7 +326,7 @@ export default function ProductDetailPage() {
                   href="/appointments"
                   className="text-xs font-bold text-shopee-orange hover:underline flex items-center gap-1"
                 >
-                  <Calendar className="w-3.5 h-3.5" /> Hẹn thử sản phẩm tại Showroom
+                  <Calendar className="w-3.5 h-3.5" /> Hẹn thử sản phẩm tại cửa hàng
                 </Link>
               </div>
             </div>
@@ -361,7 +335,7 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-100 text-[11px] text-slate-600 font-medium">
               <div className="flex items-center gap-1.5">
                 <Truck className="w-4 h-4 text-shopee-orange flex-shrink-0" />
-                <span>Freeship từ 200k</span>
+                <span>Miễn phí vận chuyển từ 200k</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-shopee-orange flex-shrink-0" />
@@ -433,7 +407,7 @@ export default function ProductDetailPage() {
                     </tr>
                     <tr className="border-b border-slate-100">
                       <td className="p-3 font-bold text-slate-600">Thương Hiệu</td>
-                      <td className="p-3 font-semibold text-slate-800">MiniShop Selection</td>
+                      <td className="p-3 font-semibold text-slate-800">Bộ sưu tập MiniShop</td>
                     </tr>
                     <tr className="border-b border-slate-100 bg-slate-50">
                       <td className="p-3 font-bold text-slate-600">Xuất Xứ</td>
@@ -457,7 +431,7 @@ export default function ProductDetailPage() {
                   <strong>• Bảo hành điện tử:</strong> Đổi mới 1-1 trong 30 ngày nếu phát sinh lỗi từ nhà sản xuất.
                 </p>
                 <p>
-                  <strong>• Showroom Support:</strong> Khách hàng có thể mang trực tiếp sản phẩm đến hệ thống Showroom MiniShop để được nhân viên hỗ trợ nhanh nhất.
+                  <strong>• Hỗ trợ tại cửa hàng:</strong> Khách hàng có thể mang trực tiếp sản phẩm đến hệ thống cửa hàng MiniShop để được nhân viên hỗ trợ nhanh nhất.
                 </p>
               </div>
             )}

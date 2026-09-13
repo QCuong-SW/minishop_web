@@ -59,7 +59,7 @@ export function Navbar() {
               href="/admin"
               className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-purple-600 hover:bg-purple-500 px-3 py-1 rounded-xl shadow transition active:scale-95 flex-shrink-0"
             >
-              <span>Vào Admin Portal</span>
+              <span>Vào trang quản trị</span>
               <span>→</span>
             </Link>
           </div>
@@ -86,21 +86,13 @@ export function Navbar() {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 group flex-shrink-0"
+          className="group flex h-11 w-[148px] flex-shrink-0 items-center sm:w-[178px]"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-shopee-orange to-amber-500 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-            <ShoppingCart className="w-5 h-5 text-white stroke-[2.5]" />
-          </div>
-
-          <div className="hidden sm:flex flex-col">
-            <span className="text-xl font-black text-shopee-orange tracking-tight leading-tight">
-              Mini<span className="text-slate-800">Shop</span>
-            </span>
-
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest -mt-0.5">
-              E-Commerce 2026
-            </span>
-          </div>
+          <img
+            src="/minishop-logo.png"
+            alt="MiniShop"
+            className="h-10 w-full object-contain object-left transition-transform duration-300 group-hover:scale-[1.03]"
+          />
         </Link>
 
         {/* Search */}
