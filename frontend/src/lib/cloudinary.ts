@@ -3,7 +3,7 @@ const CLOUDINARY_UPLOAD_URL =
   "https://api.cloudinary.com/v1_1/gwxzzptn/image/upload";
 
 const CLOUDINARY_UPLOAD_PRESET =
-  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "mini-shop-web-project";
+  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "mini-shop";
 
 type CloudinaryUploadResponse = {
   secure_url?: string;
