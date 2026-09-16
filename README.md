@@ -25,7 +25,7 @@ He thong thuong mai dien tu toan dien (E-Commerce Platform) phuc vu hoc phan Lap
 ### Co so du lieu (Database Layer)
 - He quan tri CSDL: MySQL 8.0 Community Server
 - Storage Engine: InnoDB (Ho tro ACID Transactions va Foreign Key Constraints)
-- Script khoi tao: schema.sql (Cau truc 8 bang quan he), seed.sql (Du lieu mau chuan hoa)
+- Script khoi tao: schema.sql (Cau truc 11 bang quan he), seed.sql (Du lieu mau chuan hoa)
 
 ### DevOps va Containerization
 - Cong cu: Docker, Docker Compose
@@ -39,6 +39,7 @@ He thong thuong mai dien tu toan dien (E-Commerce Platform) phuc vu hoc phan Lap
 ```text
 minishop_web/
 |-- backend/                        # Ma nguon PHP RESTful API
+|   |-- bootstrap.php              # Nap .env va PSR-4 autoloader
 |   |-- config/                     # Cau hinh Database va He thong
 |   |   `-- database.php
 |   |-- public/                     # Entry point cua Backend
@@ -46,10 +47,9 @@ minishop_web/
 |   |-- routes/                     # Dinh tuyen REST API
 |   |   `-- api.php
 |   |-- src/                        # Logic xu ly huong doi tuong (OOP)
-|   |   |-- Controllers/            # Tiep nhan Request va tra ve Response
-|   |   |-- Services/               # Xu ly Business Logic, Validation, Transaction
-|   |   |-- Repositories/           # Thao tac truy van SQL thuan qua PDO
-|   |   `-- Shared/                 # Middleware (CORS, Auth), Database Singleton, Router
+|   |   |-- Auth/, Product/, ...    # Moi feature gom Controller -> Service -> Repository
+|   |   `-- Shared/                 # Config, Middleware, Database, Router va HTTP errors
+|   |-- tests/                      # Unit test PHP khong phu thuoc framework
 |   |-- composer.json
 |   `-- Dockerfile                  # Container hoa Backend PHP
 |
@@ -70,16 +70,20 @@ minishop_web/
 |   |   |-- lib/                    # StorageService (Auto-healing LocalStorage), Mock Data, Utils
 |   |   `-- types/                  # TypeScript Data Models & Interfaces
 |   |-- package.json
+|   |-- tests/unit/                 # Vitest unit tests
+|   |-- tests/e2e/                  # Playwright desktop + mobile tests
 |   |-- tailwind.config.ts
 |   |-- next.config.mjs
 |   |-- vercel.json
 |   `-- Dockerfile                  # Multi-stage production build cho Frontend
 |
 |-- database/
-|   |-- schema.sql                  # DDL tao 8 bang, khoa chinh, khoa ngoai va index
-|   `-- seed.sql                    # DML nạp du lieu mau khoi tao
+|   |-- schema.sql                  # DDL tao 11 bang, khoa chinh, khoa ngoai va index
+|   |-- seed.sql                    # DML nap du lieu mau khoi tao
+|   `-- tests/                      # Integration test schema, seed va constraints
 |
 |-- docker-compose.yml              # Dinh nghia fullstack 4 containers
+|-- .github/workflows/ci.yml        # CI lint, typecheck, unit, build va E2E
 |-- .env.example                    # Mau bien moi truong
 `-- README.md                       # Tai lieu huong dan du an
 ```
@@ -138,14 +142,18 @@ Yeu cau: May tinh da cai dat Docker Desktop.
 
 Mo Terminal tai thu muc goc cua du an va chay:
 ```bash
+cp .env.example .env
 docker compose up -d --build
 ```
+
+Tat ca thong tin ket noi, JWT, CORS, API URL va cong host deu duoc dinh nghia trong `.env`. Khong commit file `.env`; chi commit `.env.example`.
 
 Sau khi khoi chay thanh cong:
 - Giao dien Cua hang: `http://localhost:4000`
 - Giao dien Quan tri Admin: `http://localhost:4000/admin`
 - Backend REST API: `http://localhost:8000/api`
 - phpMyAdmin quan tri Database: `http://localhost:8080` (Tai khoan: `app` / Mat khau: `app`)
+- MySQL tu may host: `localhost:3307` (co the doi bang `MYSQL_HOST_PORT`)
 
 De dung he thong:
 ```bash
@@ -166,7 +174,7 @@ CSDL se tu dong nạp file `database/schema.sql` va `database/seed.sql`.
 #### Buoc 2: Khoi chay Backend PHP
 ```bash
 cd backend
-php -S 0.0.0.0:8000 -t public
+DB_HOST=127.0.0.1 DB_PORT=3307 php -S 0.0.0.0:8000 -t public
 ```
 
 #### Buoc 3: Khoi chay Frontend Next.js
@@ -210,3 +218,23 @@ Truy cap trinh duyet tai dia chi: `http://localhost:4000`
 - Data Sanitization & SQL Injection Protection: Toan bo cau lenh truy van su dung PDO Parameter Binding.
 - ACID Transaction Handling: Cac nghiep vu tao don hang, tru ton kho, cong so luong da ban deu duoc bao boc trong Database Transaction `beginTransaction() -> commit() / rollBack()`.
 - Stateless RESTful Design: Giao tiep qua JSON, khong luu Session tren Server, de dang scale len Cloud.
+- JWT HS256: Kiem tra chu ky, `sub`, `iat`, `nbf`, `exp`, `iss`, `aud`, `jti`; secret toi thieu 32 ky tu va duoc lay tu `.env`.
+
+---
+
+## 8. KIEM THU VA CI
+
+Chay cac quality gate cuc bo:
+
+```bash
+php backend/tests/run.php
+bash database/tests/run.sh
+cd frontend
+npm ci
+npm run check
+npm run test:e2e
+```
+
+Database test tao mot CSDL tam `shopee_mini_test`, nap lai schema/seed, kiem tra khoa ngoai, du lieu tong hop, constraint va tu xoa CSDL tam sau khi chay.
+
+GitHub Actions tu dong chay MySQL schema/seed tests, PHP syntax/unit tests, ESLint, TypeScript, Vitest, production build va Playwright tren desktop/mobile khi push len `main`, `NDKien` hoac tao pull request.
