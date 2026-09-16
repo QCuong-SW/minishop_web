@@ -131,6 +131,26 @@ He thong da khoi tao san 2 tai khoan mau:
 
 ## 5. HUONG DAN CAI DAT VA KHOI CHAY
 
+### CI/CD production
+
+GitHub Actions chay lint, typecheck, unit test, database test, E2E va production
+build cho moi pull request/push. Nhanh `dev` chi chay CI; chi merge/push vao
+`main` (hoac chay thu cong workflow tren `main`) moi duoc phep deploy EC2 sau
+khi tat ca gate thanh cong. Workflow dung cac GitHub Actions secrets: `AWS_SSH_PRIVATE_KEY`,
+`AWS_EC2_HOST`, `AWS_EC2_USER`, va `PROD_ENV_FILE`.
+
+`PROD_ENV_FILE` phai la noi dung day du cua `.env` production. Dat
+`NEXT_PUBLIC_API_URL=/api`, `APP_ENV=production`, `APP_URL` va `FRONTEND_URL`
+theo domain HTTPS that su; khong dung cac gia tri mau trong `.env.example`.
+Deploy se cho den 60 giay de `/` va `/api/products` san sang; neu that bai,
+workflow in log cua backend/frontend/proxy de de chan doan.
+
+Voi domain `sslip.io`, dat `DOMAIN=<public-ip>.sslip.io`, `APP_URL=https://<public-ip>.sslip.io`,
+`FRONTEND_URL=https://<public-ip>.sslip.io` va `NEXT_PUBLIC_API_URL=/api` trong
+`PROD_ENV_FILE`. Let’s Encrypt can xac thuc qua port 80; mo ca TCP 80 va 443
+trong AWS Security Group. Sau khi cap phat lan dau, renewal script la
+`deploy/scripts/renew-certificates.sh`.
+
 ### Cach 1: Chay Tron Goi Bang Docker Compose (Khuyen dung - 1 lenh duy nhat)
 
 Yeu cau: May tinh da cai dat Docker Desktop.

@@ -1,7 +1,9 @@
 node_modules
 .next
-coverage
 playwright-report
 test-results
-npm-debug.log*
+coverage
+tsconfig.tsbuildinfo
 .env*
+.git
+npm-debug.log*

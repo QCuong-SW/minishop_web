@@ -1,5 +1,6 @@
+.env*
+.git
 vendor
 tests
-.phpunit.result.cache
 storage/logs
-.env*
+.phpunit.result.cache

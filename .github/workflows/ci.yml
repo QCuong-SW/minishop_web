@@ -1,4 +1,4 @@
-name: MiniShop CI
+name: MiniShop CI/CD
 
 on:
   push:
@@ -7,6 +7,11 @@ on:
 
 permissions:
   contents: read
+
+# Do not allow two releases to rebuild/restart the same EC2 stack at once.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
 
 jobs:
   database:
@@ -148,26 +153,34 @@ jobs:
         needs.backend.result == 'success' &&
         needs.frontend.result == 'success' &&
         needs.e2e.result == 'success' &&
-        (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/dev')
+        github.ref == 'refs/heads/main' &&
+        (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
       }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     environment: production
     steps:
       - uses: actions/checkout@v4
       - name: Prepare SSH key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+          EC2_HOST: ${{ secrets.AWS_EC2_HOST }}
         run: |
           test -n "$SSH_PRIVATE_KEY"
+          test -n "$EC2_HOST"
           install -m 700 -d ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/ec2_deploy_key
           chmod 600 ~/.ssh/ec2_deploy_key
-          ssh-keyscan -H "${{ secrets.AWS_EC2_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -T 10 -H "$EC2_HOST" >> ~/.ssh/known_hosts
       - name: Sync application
         run: |
           rsync -az --delete \
             --exclude '.git/' \
             --exclude '.env' \
+            --exclude '.github/' \
+            --exclude '.kilo/' \
+            --exclude 'minishop_web/' \
+            --exclude 'deploy/certbot/conf/' \
             --exclude 'frontend/node_modules/' \
             --exclude 'frontend/.next/' \
             --exclude 'frontend/tsconfig.tsbuildinfo' \
@@ -187,4 +200,11 @@ jobs:
             "${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}" \
             'cd /home/'"${{ secrets.AWS_EC2_USER }}"'/minishop_web && \
              sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build mysql backend frontend proxy && \
-             sleep 15 && curl -fsS http://127.0.0.1/ >/dev/null && curl -fsS http://127.0.0.1/api/products >/dev/null'
+             for attempt in $(seq 1 30); do \
+               curl -fsS http://127.0.0.1/ >/dev/null && \
+               curl -fsS http://127.0.0.1/api/products >/dev/null && exit 0; \
+               sleep 2; \
+             done; \
+             sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml ps; \
+             sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=100 backend frontend proxy; \
+             exit 1'
