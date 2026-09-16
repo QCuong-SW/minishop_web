@@ -1,12 +1,17 @@
-name: MiniShop CI
+name: MiniShop CI/CD
 
 on:
   push:
-    branches: [main, dev]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+# Do not allow two releases to rebuild/restart the same EC2 stack at once.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
 
 jobs:
   database:
@@ -29,8 +34,17 @@ jobs:
       - name: Start MySQL and backend
         if: steps.check.outputs.exists == 'true'
         run: docker compose up -d mysql backend
+      - name: Install MySQL client
+        if: steps.check.outputs.exists == 'true'
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
       - name: Test schema, seed and constraints
         if: steps.check.outputs.exists == 'true'
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3307
+          DB_DATABASE: shopee_mini
+          DB_USERNAME: app
+          DB_PASSWORD: app
         run: bash database/tests/run.sh
       - name: Show MySQL logs on failure
         if: failure()
@@ -57,10 +71,10 @@ jobs:
         run: find backend -type f -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Backend unit tests
         run: |
-          if [ -f "backend/tests/run.php" ] && [ -f "backend/bootstrap.php" ]; then
+          if [ -f "backend/tests/run.php" ]; then
             php backend/tests/run.php
           else
-            echo "⚠️ backend/tests/run.php or bootstrap.php not found, skipping"
+            echo "⚠️ backend/tests/run.php not found, skipping"
           fi
 
   frontend:
@@ -120,9 +134,77 @@ jobs:
       - name: Run E2E tests
         if: steps.check_e2e.outputs.exists == 'true'
         run: npm run test:e2e
+        env:
+          NEXT_PUBLIC_API_URL: ""
+          NEXT_PUBLIC_ENABLE_MOCK_FALLBACK: "true"
       - uses: actions/upload-artifact@v4
         if: always() && steps.check_e2e.outputs.exists == 'true'
         with:
           name: playwright-report
           path: frontend/playwright-report/
           retention-days: 14
+
+  deploy:
+    name: Deploy production to EC2
+    needs: [database, backend, frontend, e2e]
+    if: >-
+      ${{
+        needs.database.result == 'success' &&
+        needs.backend.result == 'success' &&
+        needs.frontend.result == 'success' &&
+        needs.e2e.result == 'success' &&
+        github.ref == 'refs/heads/main' &&
+        (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+          EC2_HOST: ${{ secrets.AWS_EC2_HOST }}
+        run: |
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$EC2_HOST"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/ec2_deploy_key
+          chmod 600 ~/.ssh/ec2_deploy_key
+          ssh-keyscan -T 10 -H "$EC2_HOST" >> ~/.ssh/known_hosts
+      - name: Sync application
+        run: |
+          rsync -az --delete \
+            --exclude '.git/' \
+            --exclude '.env' \
+            --exclude '.github/' \
+            --exclude '.kilo/' \
+            --exclude 'minishop_web/' \
+            --exclude 'deploy/certbot/conf/' \
+            --exclude 'frontend/node_modules/' \
+            --exclude 'frontend/.next/' \
+            --exclude 'frontend/tsconfig.tsbuildinfo' \
+            -e 'ssh -i ~/.ssh/ec2_deploy_key -o BatchMode=yes' \
+            ./ "${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:/home/${{ secrets.AWS_EC2_USER }}/minishop_web/"
+      - name: Install production environment file
+        env:
+          PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
+        run: |
+          test -n "$PROD_ENV_FILE"
+          printf '%s\n' "$PROD_ENV_FILE" | ssh -i ~/.ssh/ec2_deploy_key -o BatchMode=yes \
+            "${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}" \
+            'umask 077; mkdir -p /home/'"${{ secrets.AWS_EC2_USER }}"'/minishop_web; cat > /home/'"${{ secrets.AWS_EC2_USER }}"'/minishop_web/.env'
+      - name: Build and restart production stack
+        run: |
+          ssh -i ~/.ssh/ec2_deploy_key -o BatchMode=yes \
+            "${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}" \
+            'cd /home/'"${{ secrets.AWS_EC2_USER }}"'/minishop_web && \
+             sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build mysql backend frontend proxy && \
+             for attempt in $(seq 1 30); do \
+               curl -fsS http://127.0.0.1/ >/dev/null && \
+               curl -fsS http://127.0.0.1/api/products >/dev/null && exit 0; \
+               sleep 2; \
+             done; \
+             sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml ps; \
+             sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=100 backend frontend proxy; \
+             exit 1'
