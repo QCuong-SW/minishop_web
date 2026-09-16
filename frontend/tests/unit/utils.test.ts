@@ -3,17 +3,17 @@ import { formatVND, slugify } from "@/lib/utils";
 
 describe("formatVND", () => {
   test("formats whole numbers correctly", () => {
-    expect(formatVND(1000)).toBe("1.000");
-    expect(formatVND(1000000)).toBe("1.000.000");
-    expect(formatVND(123456789)).toBe("123.456.789");
+    expect(formatVND(1000)).toBe("1.000\u00A0₫");
+    expect(formatVND(1000000)).toBe("1.000.000\u00A0₫");
+    expect(formatVND(123456789)).toBe("123.456.789\u00A0₫");
   });
 
   test("formats zero correctly", () => {
-    expect(formatVND(0)).toBe("0");
+    expect(formatVND(0)).toBe("0\u00A0₫");
   });
 
   test("formats negative numbers correctly", () => {
-    expect(formatVND(-1000)).toBe("-1.000");
+    expect(formatVND(-1000)).toBe("-1.000\u00A0₫");
   });
 });
 

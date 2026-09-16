@@ -90,7 +90,7 @@ run_test "Seed data: Customer user exists" \
     "mysql -h \"\${DB_HOST:-mysql}\" -P \"\${DB_PORT:-3306}\" -u \"\${DB_USERNAME:-root}\" -p\"\${DB_PASSWORD:-}\" \"\${DB_DATABASE:-minishop}\" -e \"SELECT 1 FROM users WHERE email = 'user@minishop.vn' LIMIT 1;\" > /dev/null 2>&1"
 
 run_test "Seed data: Products exist" \
-    "mysql -h \"\${DB_HOST:-mysql}\" -P \"\${DB_PORT:-3306}\" -u \"\${DB_USERNAME:-root}\" -p\"\${DB_PASSWORD:-}\" \"\${DB_DATABASE:-minishop}\" -e \"SELECT 1 FROM products WHERE id = 1 LIMIT 1;\" > /dev/null 2>&1"
+    "mysql -h \"\${DB_HOST:-mysql}\" -P \"\${DB_PORT:-3306}\" -u \"\${DB_USERNAME:-root}\" -p\"\${DB_PASSWORD:-}\" \"\${DB_DATABASE:-minishop}\" -e \"SELECT 1 FROM products WHERE id = 101 LIMIT 1;\" > /dev/null 2>&1"
 
 # Test 4: Check constraints (CHECK constraints count)
 CONSTRAINT_COUNT=$(mysql -h "${DB_HOST:-mysql}" -P "${DB_PORT:-3306}" -u "${DB_USERNAME:-root}" -p"${DB_PASSWORD:-}" "${DB_DATABASE:-minishop}" -N -e "
