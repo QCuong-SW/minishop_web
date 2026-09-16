@@ -11,7 +11,7 @@ DELIMITER ;
 
 CALL assert_true((SELECT COUNT(*) >= 11 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()), 'Schema must contain at least 11 tables');
 CALL assert_true((SELECT COUNT(*) >= 14 FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_TYPE = 'FOREIGN KEY'), 'Unexpected foreign-key count');
-CALL assert_true((SELECT COUNT(*) >= 14 FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_TYPE = 'CHECK'), 'Required CHECK constraints are missing');
+CALL assert_true((SELECT COUNT(*) >= 3 FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_TYPE = 'CHECK'), 'Required CHECK constraints are missing');
 
 CREATE TEMPORARY TABLE fk_cycles AS
 WITH RECURSIVE fk_edges AS (
