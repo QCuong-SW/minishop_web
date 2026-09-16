@@ -24,6 +24,9 @@ frontend/dist/
 frontend/.pnp
 frontend/.pnp.js
 frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+frontend/tsconfig.tsbuildinfo
 
 # 4. Backend (PHP / Composer)
 backend/vendor/
