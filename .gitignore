@@ -66,3 +66,4 @@ desktop.ini
 # 8. Uploads local test files (preserve .gitkeep)
 backend/public/uploads/*
 !backend/public/uploads/.gitkeep
+ubt-hcm-web.pem
