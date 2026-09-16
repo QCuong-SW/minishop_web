@@ -29,8 +29,17 @@ jobs:
       - name: Start MySQL and backend
         if: steps.check.outputs.exists == 'true'
         run: docker compose up -d mysql backend
+      - name: Install MySQL client
+        if: steps.check.outputs.exists == 'true'
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
       - name: Test schema, seed and constraints
         if: steps.check.outputs.exists == 'true'
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3307
+          DB_DATABASE: shopee_mini
+          DB_USERNAME: app
+          DB_PASSWORD: app
         run: bash database/tests/run.sh
       - name: Show MySQL logs on failure
         if: failure()
@@ -57,10 +66,10 @@ jobs:
         run: find backend -type f -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Backend unit tests
         run: |
-          if [ -f "backend/tests/run.php" ] && [ -f "backend/bootstrap.php" ]; then
+          if [ -f "backend/tests/run.php" ]; then
             php backend/tests/run.php
           else
-            echo "⚠️ backend/tests/run.php or bootstrap.php not found, skipping"
+            echo "⚠️ backend/tests/run.php not found, skipping"
           fi
 
   frontend:
@@ -120,6 +129,9 @@ jobs:
       - name: Run E2E tests
         if: steps.check_e2e.outputs.exists == 'true'
         run: npm run test:e2e
+        env:
+          NEXT_PUBLIC_API_URL: ""
+          NEXT_PUBLIC_ENABLE_MOCK_FALLBACK: "true"
       - uses: actions/upload-artifact@v4
         if: always() && steps.check_e2e.outputs.exists == 'true'
         with:

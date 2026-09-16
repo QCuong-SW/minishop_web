@@ -238,9 +238,6 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
           {/* Footer Note */}
           <div className="relative z-10 text-[10px] text-slate-400 border-t border-white/10 pt-3 flex items-center justify-between">
             <span>© 2026 Nền tảng MiniShop</span>
-            <span className="text-amber-400 font-semibold flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3 text-emerald-400" /> 100% Bảo mật SSL
-            </span>
           </div>
         </div>
 

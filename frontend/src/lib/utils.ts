@@ -7,10 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatVND(amount: number | string | undefined | null): string {
   const num = Number(amount) || 0;
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(num);
+  return new Intl.NumberFormat("vi-VN").format(num);
 }
 
 export function formatNumber(num: number | undefined | null): string {

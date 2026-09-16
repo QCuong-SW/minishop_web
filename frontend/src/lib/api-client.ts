@@ -1,6 +1,11 @@
 import { StorageService } from "./storage";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+// Keep compatibility with the existing deployment variable while supporting
+// the more explicit API_BASE_URL name. Use a same-origin `/api` value in
+// production so requests stay HTTPS when Nginx terminates TLS.
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.NEXT_PUBLIC_API_URL
+)?.trim();
 const API_TIMEOUT_MS = 2500;
 
 export async function apiFetch<T>(
