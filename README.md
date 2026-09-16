@@ -12,7 +12,7 @@ He thong thuong mai dien tu toan dien (E-Commerce Platform) phuc vu hoc phan Lap
 - Styling: Tailwind CSS, CSS Grid, Flexbox, Custom Keyframes Animations
 - Icons va UI Components: Lucide React, Sonner Toast
 - Quan ly State va Context: React Context API (AuthContext, CartContext, WishlistContext)
-- Trien khai (Deployment): Vercel CI/CD
+- Trien khai (Deployment): Docker Container
 
 ### Backend (Server-side API)
 - Ngon ngu va Moi truong: PHP 8.2 (CLI / Built-in Server)
@@ -72,7 +72,6 @@ minishop_web/
 |   |-- package.json
 |   |-- tailwind.config.ts
 |   |-- next.config.mjs
-|   |-- vercel.json
 |   `-- Dockerfile                  # Multi-stage production build cho Frontend
 |
 |-- database/
