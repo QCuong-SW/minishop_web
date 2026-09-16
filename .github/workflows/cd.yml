@@ -1,0 +1,116 @@
+name: MiniShop CD - Deploy to AWS EC2
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+          known_hosts: "just-a-placeholder-so-we-dont-get-errors"
+
+      - name: Add EC2 to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.AWS_EC2_HOST }} -p 22 >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Create remote directory
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 22 ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} \
+            "mkdir -p /home/${{ secrets.AWS_EC2_USER }}/minishop"
+
+      - name: Install Docker on EC2 (if not installed)
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 22 ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << 'EOF'
+            if ! command -v docker &> /dev/null; then
+              echo "Installing Docker..."
+              sudo apt-get update -y
+              sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+              echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+              sudo apt-get update -y
+              sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+              sudo systemctl enable docker
+              sudo systemctl start docker
+              echo "Docker installed successfully"
+            else
+              echo "Docker already installed"
+            fi
+          EOF
+
+      - name: Install Docker Compose on EC2 (if not installed)
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 22 ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << 'EOF'
+            if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+              echo "Installing Docker Compose..."
+              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+              echo "Docker Compose installed successfully"
+            else
+              echo "Docker Compose already installed"
+            fi
+          EOF
+
+      - name: Add EC2 user to docker group
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 22 ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << 'EOF'
+            sudo usermod -aG docker ${{ secrets.AWS_EC2_USER }}
+            echo "User added to docker group"
+          EOF
+
+      - name: Copy project files to EC2
+        run: |
+          # Copy backend, frontend, database, docker-compose, .env.example
+          scp -o StrictHostKeyChecking=no -r -P 22 backend \
+            ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:/home/${{ secrets.AWS_EC2_USER }}/minishop/
+          scp -o StrictHostKeyChecking=no -r -P 22 frontend \
+            ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:/home/${{ secrets.AWS_EC2_USER }}/minishop/
+          scp -o StrictHostKeyChecking=no -r -P 22 database \
+            ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:/home/${{ secrets.AWS_EC2_USER }}/minishop/
+          scp -o StrictHostKeyChecking=no -P 22 docker-compose.yml \
+            ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:/home/${{ secrets.AWS_EC2_USER }}/minishop/
+          scp -o StrictHostKeyChecking=no -P 22 .env.example \
+            ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:/home/${{ secrets.AWS_EC2_USER }}/minishop/
+
+      - name: Copy .env to EC2
+        run: |
+          echo "${{ secrets.PROD_ENV_FILE }}" > .env.prod
+          scp -o StrictHostKeyChecking=no -P 22 .env.prod \
+            ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}:/home/${{ secrets.AWS_EC2_USER }}/minishop/.env
+          rm .env.prod
+
+      - name: Deploy with Docker Compose
+        run: |
+          ssh -o StrictHostKeyChecking=no -p 22 ${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }} << 'EOF'
+            cd /home/${{ secrets.AWS_EC2_USER }}/minishop
+            
+            # Stop existing containers
+            docker compose down || true
+            
+            # Pull latest images if using pre-built
+            # docker compose pull || true
+            
+            # Start containers
+            docker compose up -d
+            
+            # Show running containers
+            docker compose ps
+            
+            # Clean up old images
+            docker system prune -f
+          EOF
