@@ -172,6 +172,26 @@ jobs:
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/ec2_deploy_key
           chmod 600 ~/.ssh/ec2_deploy_key
           ssh-keyscan -T 10 -H "$EC2_HOST" >> ~/.ssh/known_hosts
+      - name: Validate production environment file
+        env:
+          PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
+        run: |
+          set -euo pipefail
+          required_vars=(
+            DB_DATABASE DB_USERNAME DB_PASSWORD MYSQL_ROOT_PASSWORD
+            APP_ENV APP_URL JWT_SECRET JWT_ISSUER JWT_AUDIENCE JWT_TTL
+            FRONTEND_URL NEXT_PUBLIC_API_URL NEXT_PUBLIC_ENABLE_MOCK_FALLBACK DOMAIN
+          )
+          if [ -z "$(printf '%s' "$PROD_ENV_FILE" | tr -d '[:space:]')" ]; then
+            echo "::error::GitHub secret PROD_ENV_FILE is empty. Deployment was not started."
+            exit 1
+          fi
+          for variable in "${required_vars[@]}"; do
+            if ! printf '%s\n' "$PROD_ENV_FILE" | grep -qE "^${variable}=[^[:space:]].*$"; then
+              echo "::error::PROD_ENV_FILE is missing a non-empty ${variable} entry."
+              exit 1
+            fi
+          done
       - name: Sync application
         run: |
           rsync -az --delete \
@@ -190,21 +210,20 @@ jobs:
         env:
           PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
         run: |
-          test -n "$PROD_ENV_FILE"
           printf '%s\n' "$PROD_ENV_FILE" | ssh -i ~/.ssh/ec2_deploy_key -o BatchMode=yes \
             "${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}" \
-            'umask 077; mkdir -p /home/'"${{ secrets.AWS_EC2_USER }}"'/minishop_web; cat > /home/'"${{ secrets.AWS_EC2_USER }}"'/minishop_web/.env'
+            'set -eu; umask 077; project=/home/'"${{ secrets.AWS_EC2_USER }}"'/minishop_web; mkdir -p "$project"; temporary_env=$(mktemp "$project/.env.tmp.XXXXXX"); trap "rm -f \"$temporary_env\"" EXIT; cat > "$temporary_env"; for variable in DB_DATABASE DB_USERNAME DB_PASSWORD MYSQL_ROOT_PASSWORD APP_ENV APP_URL JWT_SECRET JWT_ISSUER JWT_AUDIENCE JWT_TTL FRONTEND_URL NEXT_PUBLIC_API_URL NEXT_PUBLIC_ENABLE_MOCK_FALLBACK DOMAIN; do grep -qE "^${variable}=[^[:space:]].*$" "$temporary_env" || { echo "Invalid production environment file: missing $variable" >&2; exit 1; }; done; mv "$temporary_env" "$project/.env"; trap - EXIT'
       - name: Build and restart production stack
         run: |
           ssh -i ~/.ssh/ec2_deploy_key -o BatchMode=yes \
             "${{ secrets.AWS_EC2_USER }}@${{ secrets.AWS_EC2_HOST }}" \
             'cd /home/'"${{ secrets.AWS_EC2_USER }}"'/minishop_web && \
-             sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build mysql backend frontend proxy && \
+             sudo docker compose -p minishop_web -f docker-compose.yml -f docker-compose.prod.yml up -d --build mysql backend frontend proxy && \
              for attempt in $(seq 1 30); do \
                curl -fsS http://127.0.0.1/ >/dev/null && \
                curl -fsS http://127.0.0.1/api/products >/dev/null && exit 0; \
                sleep 2; \
              done; \
-             sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml ps; \
-             sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=100 backend frontend proxy; \
+             sudo docker compose -p minishop_web -f docker-compose.yml -f docker-compose.prod.yml ps; \
+             sudo docker compose -p minishop_web -f docker-compose.yml -f docker-compose.prod.yml logs --tail=100 backend frontend proxy; \
              exit 1'
