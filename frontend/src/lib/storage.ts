@@ -109,7 +109,19 @@ export const StorageService = {
     if (currentAuth) {
       setItem(KEYS.AUTH, normalizeUser(currentAuth));
     }
-    if (!localStorage.getItem(KEYS.CATEGORIES)) setItem(KEYS.CATEGORIES, INITIAL_CATEGORIES);
+    if (!localStorage.getItem(KEYS.CATEGORIES)) {
+      setItem(KEYS.CATEGORIES, INITIAL_CATEGORIES);
+    } else {
+      // Repair seed data saved by older builds that decoded UTF-8 as a legacy
+      // single-byte encoding (for example "Thá»�i Trang Nam").
+      const cachedCategories = getItem<Category[]>(KEYS.CATEGORIES, []);
+      const hasMojibake = cachedCategories.some((category) =>
+        /[�]|Ã|Â|Ä�|á»/.test(category.name)
+      );
+      if (hasMojibake) {
+        setItem(KEYS.CATEGORIES, INITIAL_CATEGORIES);
+      }
+    }
     if (!localStorage.getItem(KEYS.PRODUCTS)) {
       setItem(KEYS.PRODUCTS, INITIAL_PRODUCTS);
     } else {

@@ -5,7 +5,6 @@ import { StorageService } from "@/lib/storage";
 import { Category } from "@/types";
 import { slugify } from "@/lib/utils";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
-import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
 import {
   Layers,
@@ -30,7 +29,6 @@ export default function AdminCategoriesPage() {
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const fetchCategories = () => {
     StorageService.init();
@@ -63,26 +61,6 @@ export default function AdminCategoriesPage() {
     setName(val);
     if (!editingCategory) {
       setSlug(slugify(val));
-    }
-  };
-
-  const handleImageUpload = async (file?: File) => {
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Kích thước ảnh quá lớn, vui lòng chọn ảnh < 2MB");
-      return;
-    }
-
-    try {
-      setIsUploadingImage(true);
-      const uploadedUrl = await uploadImageToCloudinary(file);
-      setImageUrl(uploadedUrl);
-      toast.success("Đã tải ảnh lên Cloudinary!");
-    } catch (err: any) {
-      toast.error(err.message || "Không thể tải ảnh lên Cloudinary");
-    } finally {
-      setIsUploadingImage(false);
     }
   };
 
@@ -403,8 +381,24 @@ export default function AdminCategoriesPage() {
                   <input
                     type="file"
                     accept="image/*"
-                    disabled={isUploadingImage}
-                    onChange={(e) => handleImageUpload(e.target.files?.[0])}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+
+                      if (file) {
+                        if (file.size > 2 * 1024 * 1024) {
+                          toast.error(
+                            "Kích thước ảnh quá lớn, vui lòng chọn ảnh < 2MB"
+                          );
+                          return;
+                        }
+
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setImageUrl(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
                     className="w-full min-w-0 cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-shopee-orange file:mr-3 file:rounded-full file:border-0 file:bg-orange-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-shopee-orange hover:file:bg-orange-100"
                   />
 
@@ -416,13 +410,6 @@ export default function AdminCategoriesPage() {
                     />
                   )}
                 </div>
-                <p className="text-[11px] text-slate-400">
-                  {isUploadingImage
-                    ? "Đang tải ảnh lên Cloudinary..."
-                    : imageUrl
-                      ? "Database sẽ chỉ lưu URL ảnh Cloudinary."
-                      : "Chọn ảnh để tải lên Cloudinary, hệ thống sẽ tự lấy URL."}
-                </p>
               </div>
 
               <div className="space-y-1.5">
