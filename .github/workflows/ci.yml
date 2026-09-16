@@ -2,7 +2,7 @@ name: MiniShop CI
 
 on:
   push:
-    branches: [main, NDKien]
+    branches: [main, dev]
   pull_request:
 
 permissions:
