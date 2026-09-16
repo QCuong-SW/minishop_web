@@ -1,6 +1,8 @@
 import { StorageService } from "./storage";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+// `NEXT_PUBLIC_API_URL` is the documented deployment variable. Keep the old
+// name as a fallback for existing environments.
+const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL)?.trim();
 const API_TIMEOUT_MS = 2500;
 
 export async function apiFetch<T>(

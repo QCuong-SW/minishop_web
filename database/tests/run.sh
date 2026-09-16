@@ -67,7 +67,7 @@ fi
 
 # Test 1: Check if database exists
 run_test "Database exists" \
-    "mysql -h \"\${DB_HOST:-mysql}\" -P \"\${DB_PORT:-3306}\" -u \"\${DB_USERNAME:-root}\" -p\"\${DB_PASSWORD:-}\" -e \"USE \\\"\${DB_DATABASE:-minishop}\\\";\" > /dev/null 2>&1"
+    "mysql -h \"\${DB_HOST:-mysql}\" -P \"\${DB_PORT:-3306}\" -u \"\${DB_USERNAME:-root}\" -p\"\${DB_PASSWORD:-}\" \"\${DB_DATABASE:-minishop}\" -e \"SELECT 1;\" > /dev/null 2>&1"
 
 # Test 2: Check if required tables exist
 run_test "Users table exists" \
