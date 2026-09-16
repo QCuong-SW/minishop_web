@@ -1,5 +1,5 @@
 # Multi-stage production build for Next.js 14
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # 1. Install dependencies only when needed
 FROM base AS deps
@@ -12,6 +12,10 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_ENABLE_MOCK_FALLBACK=false
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_ENABLE_MOCK_FALLBACK=$NEXT_PUBLIC_ENABLE_MOCK_FALLBACK
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
