@@ -9,10 +9,14 @@
 .env.test.local
 .env.production.local
 *.env
+!.env.example
+!**/.env.example
 
 # 2. Database & Docker data
 mysql_data/
 *.sqlite
+*.sqlite3
+*.db
 *.sql.gz
 
 # 3. Frontend (Node / Next.js)
@@ -24,12 +28,17 @@ frontend/dist/
 frontend/.pnp
 frontend/.pnp.js
 frontend/coverage/
+frontend/tsconfig.tsbuildinfo
+*.tsbuildinfo
 
 # 4. Backend (PHP / Composer)
 backend/vendor/
 backend/.phpunit.result.cache
 backend/storage/logs/*.log
 backend/storage/framework/
+backend/.env
+backend/.env.*
+!backend/.env.example
 
 # 5. Package manager logs & lockfiles local caches
 npm-debug.log*
@@ -39,7 +48,16 @@ pnpm-debug.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-# 6. IDEs & Editors
+# 6. Local tooling / generated files
+.codex-run/
+.turbo/
+.vercel/
+.cache/
+tmp/
+temp/
+*.log
+
+# 7. IDEs & Editors
 .vscode/
 .idea/
 *.suo
@@ -50,7 +68,7 @@ lerna-debug.log*
 *.sublime-workspace
 *.sublime-project
 
-# 7. Operating System files
+# 8. Operating System files
 .DS_Store
 .DS_Store?
 ._*
@@ -60,6 +78,6 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# 8. Uploads local test files (preserve .gitkeep)
+# 9. Uploads local test files (preserve .gitkeep)
 backend/public/uploads/*
 !backend/public/uploads/.gitkeep

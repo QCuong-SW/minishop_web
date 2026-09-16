@@ -5,6 +5,7 @@ import { getMiniShopChangedKey, MINISHOP_DATA_CHANGE_EVENT, StorageService } fro
 import { Product, Category } from "@/types";
 import { formatVND, slugify } from "@/lib/utils";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { toast } from "sonner";
 import {
   Package,
@@ -37,6 +38,7 @@ export default function AdminProductsPage() {
   const [originalPrice, setOriginalPrice] = useState<number | string>("");
   const [stock, setStock] = useState<number | string>("");
   const [imageUrl, setImageUrl] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<"ACTIVE" | "INACTIVE">("ACTIVE");
 
@@ -99,6 +101,26 @@ export default function AdminProductsPage() {
     setName(val);
     if (!editingProduct) {
       setSlug(slugify(val));
+    }
+  };
+
+  const handleImageUpload = async (file?: File) => {
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Kích thước ảnh quá lớn, vui lòng chọn ảnh < 2MB");
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const uploadedUrl = await uploadImageToCloudinary(file);
+      setImageUrl(uploadedUrl);
+      toast.success("Đã tải ảnh lên Cloudinary!");
+    } catch (err: any) {
+      toast.error(err.message || "Không thể tải ảnh lên Cloudinary");
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -616,23 +638,8 @@ export default function AdminProductsPage() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        if (file.size > 2 * 1024 * 1024) {
-                          toast.error(
-                            "Kích thước ảnh quá lớn, vui lòng chọn ảnh < 2MB"
-                          );
-                          return;
-                        }
-
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setImageUrl(reader.result as string);
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
+                    disabled={isUploadingImage}
+                    onChange={(e) => handleImageUpload(e.target.files?.[0])}
                     className="w-full min-w-0 cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-shopee-orange file:mr-3 file:rounded-full file:border-0 file:bg-orange-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-shopee-orange hover:file:bg-orange-100"
                   />
 
@@ -644,6 +651,13 @@ export default function AdminProductsPage() {
                     />
                   )}
                 </div>
+                <p className="text-[11px] text-slate-400">
+                  {isUploadingImage
+                    ? "Đang tải ảnh lên Cloudinary..."
+                    : imageUrl
+                      ? "Database sẽ chỉ lưu URL ảnh Cloudinary."
+                      : "Chọn ảnh để tải lên Cloudinary, hệ thống sẽ tự lấy URL."}
+                </p>
               </div>
 
               <div className="space-y-1.5">
