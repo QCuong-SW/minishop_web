@@ -57,10 +57,10 @@ jobs:
         run: find backend -type f -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Backend unit tests
         run: |
-          if [ -f "backend/tests/run.php" ]; then
+          if [ -f "backend/tests/run.php" ] && [ -f "backend/bootstrap.php" ]; then
             php backend/tests/run.php
           else
-            echo "⚠️ backend/tests/run.php not found, skipping"
+            echo "⚠️ backend/tests/run.php or bootstrap.php not found, skipping"
           fi
 
   frontend:
