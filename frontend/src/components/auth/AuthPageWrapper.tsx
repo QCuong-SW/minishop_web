@@ -123,7 +123,7 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100/90 p-3 sm:p-5 lg:p-6 transition-colors duration-500">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-slate-100/90 p-3 sm:p-5 lg:p-6 transition-colors duration-500">
       <div className="max-w-4xl w-full bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[580px] transition-all duration-500">
         {/* Left 5 Cols: Cinematic Sliding Image Showcase Banner */}
         <div className="hidden lg:flex lg:col-span-5 relative flex-col justify-between p-7 text-white bg-slate-950 overflow-hidden">
@@ -295,6 +295,53 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
                   </p>
                 </div>
 
+                <section
+                  aria-labelledby="tester-accounts-heading"
+                  className="rounded-2xl border border-orange-200 bg-orange-50/70 p-3"
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <Zap className="h-3.5 w-3.5 text-shopee-orange" aria-hidden="true" />
+                    <div>
+                      <h2 id="tester-accounts-heading" className="text-xs font-bold text-slate-800">
+                        Tài khoản gợi ý cho người test
+                      </h2>
+                      <p className="text-[10px] text-slate-500">Chọn vai trò để đăng nhập ngay</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDemoLogin("USER")}
+                      disabled={loading}
+                      aria-label="Đăng nhập nhanh bằng tài khoản khách hàng"
+                      className="group rounded-xl border border-slate-200 bg-white p-2.5 text-left transition hover:border-shopee-orange hover:shadow-sm active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span className="mb-1 flex items-center gap-1.5 font-bold text-slate-800">
+                        <UserCheck className="h-3.5 w-3.5 text-shopee-orange" aria-hidden="true" />
+                        Khách hàng
+                      </span>
+                      <span className="block text-[10px] leading-4 text-slate-500">user@minishop.vn</span>
+                      <span className="block text-[10px] leading-4 text-slate-500">Mật khẩu: password123</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDemoLogin("ADMIN")}
+                      disabled={loading}
+                      aria-label="Đăng nhập nhanh bằng tài khoản quản trị viên"
+                      className="group rounded-xl border border-slate-200 bg-white p-2.5 text-left transition hover:border-shopee-orange hover:shadow-sm active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span className="mb-1 flex items-center gap-1.5 font-bold text-slate-800">
+                        <ShieldCheck className="h-3.5 w-3.5 text-shopee-orange" aria-hidden="true" />
+                        Quản trị viên
+                      </span>
+                      <span className="block text-[10px] leading-4 text-slate-500">admin@minishop.vn</span>
+                      <span className="block text-[10px] leading-4 text-slate-500">Mật khẩu: password123</span>
+                    </button>
+                  </div>
+                </section>
+
                 {/* Compact Inputs */}
                 <form onSubmit={handleLoginSubmit} className="space-y-3 text-xs">
                   <div className="space-y-1">
@@ -315,7 +362,7 @@ export function AuthPageWrapper({ initialMode }: AuthPageWrapperProps) {
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <label className="font-bold text-slate-700 text-xs block">Mật khẩu (*)</label>
-                      <span className="text-[10px] text-slate-400">Mặc định: 123456 / admin123</span>
+                      <span className="text-[10px] text-slate-400">Tài khoản test: password123</span>
                     </div>
                     <div className="relative">
                       <input

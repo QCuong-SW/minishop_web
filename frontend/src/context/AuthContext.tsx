@@ -129,11 +129,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginAsDemoUser = async () => {
-    await login("user@minishop.vn", "123456");
+    await login("user@minishop.vn", "password123");
   };
 
   const loginAsDemoAdmin = async () => {
-    await login("admin@minishop.vn", "admin123");
+    await login("admin@minishop.vn", "password123");
   };
 
   const demoLogin = async (

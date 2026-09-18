@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 async function loginAsCustomer(page: import("@playwright/test").Page) {
   await page.goto("/login");
   await page.locator('input[type="email"]').first().fill("user@minishop.vn");
-  await page.locator('input[type="password"]').first().fill("123456");
+  await page.locator('input[type="password"]').first().fill("password123");
   await page.getByRole("button", { name: "ĐĂNG NHẬP NGAY", exact: true }).click();
   await expect(page).toHaveURL(/\/$/, { timeout: 10_000 });
 }
@@ -16,6 +16,15 @@ test("home page exposes primary shopping navigation", async ({ page }) => {
 
 test("demo customer can log in", async ({ page }) => {
   await loginAsCustomer(page);
+});
+
+test("tester can use a suggested account for quick login", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page.getByRole("heading", { name: "Tài khoản gợi ý cho người test" })).toBeVisible();
+  await expect(page.getByText("user@minishop.vn", { exact: true })).toBeVisible();
+  await expect(page.getByText("admin@minishop.vn", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Đăng nhập nhanh bằng tài khoản khách hàng" }).click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 10_000 });
 });
 
 test("customer can add a product to cart", async ({ page }) => {
